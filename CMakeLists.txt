@@ -15,7 +15,7 @@ if(MSVC)
 endif()
 
 set(DS2SC_GAME_DIR "C:/Program Files (x86)/Steam/steamapps/common/Dark Souls II Scholar of the First Sin/Game"
-    CACHE PATH "DS2 SOTFS Game/ directory. Build artifacts are staged so the layout matches the reference mods.")
+    CACHE PATH "DS2 SOTFS Game/ directory — the folder containing DarkSoulsII.exe. Build artifacts stage HERE (not the parent install root), because DS2 keeps its exe inside Game/ unlike DS3/ER/DS1R.")
 
 add_subdirectory(dll)
 add_subdirectory(launcher)

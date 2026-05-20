@@ -45,7 +45,7 @@ if ($LASTEXITCODE -ne 0) { throw "cmake build failed" }
 Write-Host ""
 Write-Host "Build complete." -ForegroundColor Green
 Write-Host "Outputs staged to game install:" -ForegroundColor Green
-$gameDir = "C:\Program Files (x86)\Steam\steamapps\common\Dark Souls II Scholar of the First Sin"
-Write-Host "  $gameDir\ds2sc_launcher.exe"
+$gameDir = "C:\Program Files (x86)\Steam\steamapps\common\Dark Souls II Scholar of the First Sin\Game"
+Write-Host "  $gameDir\ds2sc_launcher.exe   (next to DarkSoulsII.exe)"
 Write-Host "  $gameDir\SeamlessCoop\ds2sc.dll"
 Write-Host "  $gameDir\SeamlessCoop\ds2sc_settings.ini"
