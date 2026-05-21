@@ -1,0 +1,314 @@
+ds2sc M2 chokepoint analysis
+============================
+Program: DarkSoulsII.exe
+Image base: 140000000
+
+=== login_url_xref ===
+Anchor:    14028a020   (MOV/LEA referencing 'frpg2-steam64-ope-login.fromsoftware-game.net')
+Function:  FUN_140289f30 @ 140289f30
+Signature: undefined FUN_140289f30(void)
+Body size: 410 bytes
+
+--- callers of FUN_140289f30 (140289f30) ---
+  from 1418cc0c4  in <no fn> @ 
+  from 14139e9bc  in <no fn> @ 
+  from 14139e9cc  in <no fn> @ 
+  from 14139e9e8  in <no fn> @ 
+  from 1410d4a20  in <no fn> @ 
+
+--- decompile ---
+
+void FUN_140289f30(longlong param_1)
+
+{
+  short sVar1;
+  int iVar2;
+  longlong lVar3;
+  undefined8 *puVar4;
+  undefined8 *puVar5;
+  undefined8 *puVar6;
+  undefined1 auStack_158 [32];
+  short local_138 [32];
+  short asStack_f8 [64];
+  short asStack_78 [38];
+  undefined4 local_2c;
+  undefined4 local_28;
+  ulonglong local_18;
+  
+  local_18 = DAT_1415e1c50 ^ (ulonglong)auStack_158;
+  if (*(longlong *)(DAT_1416148f0 + 0x30) != 0) {
+    lVar3 = FUN_140833320(0x38,8,*(undefined8 *)(param_1 + 8));
+    puVar6 = (undefined8 *)0x0;
+    puVar4 = puVar6;
+    if (lVar3 != 0) {
+      puVar4 = (undefined8 *)FUN_140277100(lVar3,*(undefined8 *)(param_1 + 8));
+    }
+    puVar5 = *(undefined8 **)(param_1 + 0x10);
+    if (puVar5 != puVar4) {
+      if (puVar5 != (undefined8 *)0x0) {
+        iVar2 = FUN_140833690(puVar5 + 1);
+        if (iVar2 == 1) {
+          (**(code **)*puVar5)(puVar5);
+        }
+        else if (iVar2 < 1) {
+                    /* WARNING: Subroutine does not return */
+          thunk_FUN_141b77d76(0,0x3e,
+                              "DLReferenceCountObject: Invalid Unref() call. m_nRefCount is 0 or less"
+                             );
+        }
+        *(undefined8 *)(param_1 + 0x10) = 0;
+      }
+      *(undefined8 **)(param_1 + 0x10) = puVar4;
+      if (puVar4 != (undefined8 *)0x0) {
+        FUN_140833650(puVar4 + 1);
+      }
+    }
+    lVar3 = *(longlong *)(param_1 + 0x10);
+    puVar4 = puVar6;
+    if (lVar3 != 0) {
+      do {
+        sVar1 = *(short *)(puVar4 + 0x2821a951);
+        *(short *)(auStack_158 + 0x1e + (longlong)puVar4 + 2) = sVar1;
+        puVar5 = puVar6;
+        puVar4 = (undefined8 *)((longlong)puVar4 + 2);
+      } while (sVar1 != 0);
+      do {
+        sVar1 = *(short *)(puVar5 + 0x2821a956);
+        *(short *)((longlong)(local_138 + 0x1f) + (longlong)puVar5 + 2) = sVar1;
+        puVar5 = (undefined8 *)((longlong)puVar5 + 2);
+      } while (sVar1 != 0);
+      do {
+        sVar1 = *(short *)(puVar6 + 0x28215d0b);
+        puVar6 = (undefined8 *)((longlong)puVar6 + 2);
+        *(short *)((longlong)(asStack_f8 + 0x3f) + (longlong)puVar6) = sVar1;
+      } while (sVar1 != 0);
+      local_2c = 0xc36f;
+      local_28 = 0x1040103;
+      FUN_140277240(lVar3,local_138);
+    }
+  }
+  thunk_FUN_141b6b19f(local_18 ^ (ulonglong)auStack_158);
+  return;
+}
+
+
+
+=== sl2_extension ===
+Anchor:    140a8739e   (MOV/LEA referencing '.sl2')
+Function:  FUN_140a87110 @ 140a87110
+Signature: undefined FUN_140a87110(void)
+Body size: 701 bytes
+
+--- callers of FUN_140a87110 (140a87110) ---
+  from 14194869c  in <no fn> @ 
+  from 1414abbb4  in <no fn> @ 
+  from 1402e6f29  in FUN_1402e6e60 @ 1402e6e60
+  from 140a8a683  in FUN_140a8a5a0 @ 140a8a5a0
+
+--- decompile ---
+
+undefined8 * FUN_140a87110(undefined8 *param_1)
+
+{
+  longlong lVar1;
+  longlong lVar2;
+  longlong lVar3;
+  ulonglong uVar4;
+  undefined8 local_res10;
+  undefined1 local_res18 [8];
+  
+  *param_1 = SaveLoad2::SLContentFormat::vftable;
+  FUN_140a86a10(param_1 + 1);
+  *(undefined1 *)(param_1 + 6) = 1;
+  *(undefined4 *)(param_1 + 7) = 0x80000000;
+  *(undefined4 *)((longlong)param_1 + 0x3c) = 0x80000001;
+  *(undefined4 *)(param_1 + 8) = 0x80000001;
+  *(undefined4 *)((longlong)param_1 + 0x44) = 0x80000001;
+  *(undefined4 *)(param_1 + 9) = 0x80000001;
+  FUN_140a86ca0(param_1 + 10);
+  FUN_140a86df0(param_1 + 0xe);
+  FUN_140a86a10(param_1 + 0x12);
+  *(undefined1 *)(param_1 + 0x17) = 1;
+  *(undefined4 *)(param_1 + 0x18) = 0x80000001;
+  *(undefined4 *)((longlong)param_1 + 0xc4) = 0x80000000;
+  param_1[0x19] = 0;
+  *(undefined4 *)(param_1 + 0x1a) = 0x80000000;
+  FUN_140a86a10(param_1 + 0x1b);
+  *(undefined1 *)(param_1 + 0x20) = 1;
+  *(undefined4 *)(param_1 + 0x21) = 0x80000000;
+  *(undefined4 *)((longlong)param_1 + 0x10c) = 0x80000000;
+  *(undefined4 *)(param_1 + 0x22) = 0x80000001;
+  *(undefined4 *)((longlong)param_1 + 0x114) = 0x80000000;
+  *(undefined4 *)(param_1 + 0x23) = 0x80000000;
+  FUN_140a86a10(param_1 + 0x24);
+  *(undefined1 *)(param_1 + 0x29) = 1;
+  *(undefined4 *)(param_1 + 0x2a) = 0x80000000;
+  FUN_140a86ca0(param_1 + 0x2b);
+  FUN_140a86df0(param_1 + 0x2f);
+  FUN_140a86ca0(param_1 + 0x33);
+  FUN_140a86b50(param_1 + 0x37);
+  local_res10 = CONCAT44(local_res10._4_4_,0x80000000);
+  lVar2 = param_1[0xb];
+  lVar3 = param_1[10];
+  uVar4 = lVar2 - lVar3 >> 2;
+  if (uVar4 < 9) {
+    if (uVar4 < 8) {
+      FUN_140a88440(param_1 + 10,local_res18,lVar2,8 - uVar4,&local_res10);
+    }
+  }
+  else {
+    lVar1 = lVar3 + 0x20;
+    if (lVar1 == lVar3) {
+      param_1[0xb] = lVar3;
+    }
+    else if (lVar1 != lVar2) {
+      thunk_FUN_141c4dad4(lVar1,lVar2,0);
+      param_1[0xb] = lVar1;
+    }
+  }
+  local_res10 = 0;
+  lVar2 = param_1[0xf];
+  lVar3 = param_1[0xe];
+  uVar4 = lVar2 - lVar3 >> 3;
+  if (uVar4 < 9) {
+    if (uVar4 < 8) {
+      FUN_140a88720(param_1 + 0xe,local_res18,lVar2,8 - uVar4,&local_res10);
+    }
+  }
+  else {
+    lVar1 = lVar3 + 0x40;
+    if (lVar1 == lVar3) {
+      param_1[0xf] = lVar3;
+    }
+    else if (lVar1 != lVar2) {
+      thunk_FUN_141c4dad4(lVar1,lVar2,0);
+      param_1[0xf] = lVar1;
+    }
+  }
+  FUN_140a86560(param_1 + 0x12);
+  FUN_140a89050(param_1 + 0x1b,L".sl2",4);
+  return param_1;
+}
+
+
+
+=== lobby_chat_log ===
+Anchor:    140a73394   (MOV/LEA referencing the '_OnLobbyChatUpdate' debug string)
+Function:  FUN_140a73340 @ 140a73340
+Signature: undefined FUN_140a73340(void)
+Body size: 215 bytes
+
+--- callers of FUN_140a73340 (140a73340) ---
+  from 141947064  in <no fn> @ 
+  from 1414a7934  in <no fn> @ 
+  from 140a712ce  in FUN_140a710f0 @ 140a710f0
+  from 140a712f4  in FUN_140a710f0 @ 140a710f0
+  from 140a71309  in FUN_140a710f0 @ 140a710f0
+
+--- decompile ---
+
+void FUN_140a73340(longlong param_1,undefined8 *param_2)
+
+{
+  longlong *plVar1;
+  char cVar2;
+  undefined1 auStack_68 [32];
+  longlong *local_48;
+  undefined1 local_40;
+  undefined8 local_38;
+  undefined4 local_30 [2];
+  undefined8 local_28;
+  undefined8 local_20;
+  undefined4 local_18;
+  ulonglong local_10;
+  
+  local_38 = 0xfffffffffffffffe;
+  local_10 = DAT_1415e1c50 ^ (ulonglong)auStack_68;
+  plVar1 = (longlong *)(param_1 + 0x4b8);
+  local_48 = plVar1;
+  (**(code **)(*plVar1 + 0x10))(plVar1,0xffffffff);
+  local_40 = 1;
+  FUN_140a46b10(L"_OnLobbyChatUpdate > LobbyId:0x%I64x MemberSteamId:0x%I64x flag:0x%x",*param_2,
+                param_2[1],*(undefined4 *)(param_2 + 3));
+  local_30[0] = 1;
+  local_28 = param_2[1];
+  local_20 = *param_2;
+  local_18 = *(undefined4 *)(param_2 + 3);
+  cVar2 = FUN_140a75f10(param_1 + 0x438,local_30);
+  if (cVar2 == '\0') {
+    FUN_140a46b40(&DAT_1411aeb38,L"..\\..\\source\\matching\\steam\\SteamSessionLight.cpp",0x84e);
+  }
+  (**(code **)(*plVar1 + 0x20))(plVar1);
+  thunk_FUN_141b6b19f(local_10 ^ (ulonglong)auStack_68);
+  return;
+}
+
+
+
+=== statue_bloodstain ===
+Anchor:    140c8237d   (MOV/LEA referencing 'Frpg2RequestMessage.RequestCreateBloodstain')
+Function:  FUN_140c82370 @ 140c82370
+Signature: undefined FUN_140c82370(void)
+Body size: 45 bytes
+
+--- callers of FUN_140c82370 (140c82370) ---
+  from 14196bebc  in <no fn> @ 
+  from 141110ae0  in <no fn> @ 
+
+--- decompile ---
+
+undefined8 FUN_140c82370(longlong param_1,undefined8 param_2,undefined8 param_3,undefined8 param_4)
+
+{
+  FUN_1406b77e0(param_2,"Frpg2RequestMessage.RequestCreateBloodstain",*(undefined8 *)(param_1 + 8),
+                param_4,0);
+  return param_2;
+}
+
+
+
+=== disconnect_user ===
+Anchor:    140c824fd   (MOV/LEA referencing 'Frpg2RequestMessage.RequestDisconnectUser')
+Function:  FUN_140c824f0 @ 140c824f0
+Signature: undefined FUN_140c824f0(void)
+Body size: 45 bytes
+
+--- callers of FUN_140c824f0 (140c824f0) ---
+  from 14196bf1c  in <no fn> @ 
+  from 141208dc0  in <no fn> @ 
+
+--- decompile ---
+
+undefined8 FUN_140c824f0(longlong param_1,undefined8 param_2,undefined8 param_3,undefined8 param_4)
+
+{
+  FUN_1406b77e0(param_2,"Frpg2RequestMessage.RequestDisconnectUser",*(undefined8 *)(param_1 + 8),
+                param_4,0);
+  return param_2;
+}
+
+
+
+=== LoginTaskForNP_CCallback (data object) ===
+Address: 141591ce0
+  (no xrefs)
+
+=== SteamSessionLight_ValidateAuthTicket (data object) ===
+Address: 1415c3110
+  (no xrefs)
+
+=== SteamSurveillance_ServersConnected (data object) ===
+Address: 1415c2240
+  (no xrefs)
+
+=== SteamSurveillance_ServersDisconnected (data object) ===
+Address: 1415c22a0
+  (no xrefs)
+
+=== SteamSessionLight_P2PConnectFail (data object) ===
+Address: 1415c30b0
+  (no xrefs)
+
+=== SteamAPI_Init caller(s) ===
+  from 141aaeacc   in  <no fn>
+=== Done ===

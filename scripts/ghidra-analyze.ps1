@@ -8,7 +8,8 @@
 
 [CmdletBinding()]
 param(
-    [switch]$Reanalyze
+    [switch]$Reanalyze,
+    [string]$Script = '$Script'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -53,10 +54,10 @@ if ($Reanalyze -or -not $projExists) {
     } else {
         Write-Host "First-time import + analysis. This will take a while (~28MB binary; expect 15-60 min)." -ForegroundColor Cyan
     }
-    & cmd /c "`"$Analyze`" `"$ProjDirS`" $ProjName -import `"$Ds2Exe`" -overwrite -scriptPath `"$ScriptDirS`" -postScript m2_recon.py `"$OutDirS`""
+    & cmd /c "`"$Analyze`" `"$ProjDirS`" $ProjName -import `"$Ds2Exe`" -overwrite -scriptPath `"$ScriptDirS`" -postScript $Script `"$OutDirS`""
 } else {
     Write-Host "Project exists; re-running post-script only." -ForegroundColor Cyan
-    & cmd /c "`"$Analyze`" `"$ProjDirS`" $ProjName -process $Ds2BaseS -scriptPath `"$ScriptDirS`" -postScript m2_recon.py `"$OutDirS`" -noanalysis"
+    & cmd /c "`"$Analyze`" `"$ProjDirS`" $ProjName -process $Ds2BaseS -scriptPath `"$ScriptDirS`" -postScript $Script `"$OutDirS`" -noanalysis"
 }
 
 if ($LASTEXITCODE -ne 0) { throw "Ghidra exited $LASTEXITCODE" }
