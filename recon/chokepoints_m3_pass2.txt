@@ -1,0 +1,334 @@
+ds2sc M3 chokepoints (pass 2)
+=============================
+Program: DarkSoulsII.exe
+
+=== char_param_loader_FUN_140359bb0 ===
+Function:  FUN_140359bb0 @ 140359bb0
+Body size: 542 bytes
+
+--- callers of FUN_140359bb0 @ 140359bb0 ---
+  from 1418dadac  in <no fn>
+  from 1413b8864  in <no fn>
+  from 1413b8878  in <no fn>
+  from 1413b8888  in <no fn>
+  from 1401bd2c3  in FUN_1401bd2a0 @ 1401bd2a0
+
+--- decompile ---
+
+void FUN_140359bb0(longlong param_1)
+
+{
+  longlong *plVar1;
+  undefined8 uVar2;
+  longlong *plVar3;
+  char cVar4;
+  DWORD DVar5;
+  longlong *plVar6;
+  uint *puVar7;
+  undefined8 uVar8;
+  longlong *plVar9;
+  undefined2 *puVar10;
+  uint uVar11;
+  undefined1 auStack_b8 [32];
+  undefined4 local_98;
+  undefined8 local_90;
+  undefined4 local_88;
+  undefined1 local_80;
+  undefined1 local_78;
+  undefined1 local_68 [8];
+  undefined2 local_60;
+  undefined6 uStack_5e;
+  undefined8 local_50;
+  ulonglong local_48;
+  longlong *local_40;
+  undefined1 local_38;
+  ulonglong local_30;
+  
+  local_30 = DAT_1415e1c50 ^ (ulonglong)auStack_b8;
+  uVar2 = *(undefined8 *)(DAT_1416148f0 + 0x30);
+  plVar6 = (longlong *)FUN_140833dc0();
+  puVar7 = (uint *)(**(code **)(*plVar6 + 0x18))(plVar6,local_68,0);
+  if ((*puVar7 >> 5 & 1) != 0) {
+    uVar11 = 0;
+    local_48 = 7;
+    local_38 = 1;
+    local_50 = 0;
+    local_60 = 0;
+    local_40 = plVar6;
+    uVar8 = FUN_140aee210(0x1e);
+    plVar6 = (longlong *)(param_1 + 0x310);
+    do {
+      cVar4 = FUN_14048b620(&local_60,uVar11);
+      if (cVar4 != '\0') {
+        puVar10 = &local_60;
+        if (7 < local_48) {
+          puVar10 = (undefined2 *)CONCAT62(uStack_5e,local_60);
+        }
+        plVar9 = (longlong *)FUN_1402ddb60(uVar2,puVar10,uVar8,0);
+        plVar3 = (longlong *)*plVar6;
+        if (plVar3 != plVar9) {
+          if (plVar3 != (longlong *)0x0) {
+            DVar5 = GetTickCount();
+            plVar1 = plVar3 + 2;
+            *(int *)plVar1 = (int)*plVar1 + -1;
+            *(DWORD *)(plVar3 + 5) = DVar5;
+            if ((int)*plVar1 == 0) {
+              FUN_140aff780(plVar3);
+            }
+            FUN_140aff440(plVar3);
+            *plVar6 = 0;
+          }
+          *plVar6 = (longlong)plVar9;
+          if (plVar9 != (longlong *)0x0) {
+            if (*(uint *)((longlong)plVar9 + 0x2c) < *(uint *)(plVar6 + 1)) {
+              *(uint *)((longlong)plVar9 + 0x2c) = *(uint *)(plVar6 + 1);
+              (**(code **)(*plVar9 + 0x68))(plVar9);
+            }
+            *(int *)(plVar9 + 2) = (int)plVar9[2] + 1;
+            *(int *)((longlong)plVar9 + 0x14) = *(int *)((longlong)plVar9 + 0x14) + 1;
+            FUN_140aff7a0(plVar9);
+          }
+        }
+      }
+      uVar11 = uVar11 + 1;
+      plVar6 = plVar6 + 2;
+    } while (uVar11 < 0x52);
+    if (7 < local_48) {
+      (**(code **)(*local_40 + 0x68))(local_40,CONCAT62(uStack_5e,local_60));
+    }
+    local_90 = *(undefined8 *)(param_1 + 8);
+    local_98 = *(undefined4 *)(param_1 + 0x838);
+    local_78 = 0;
+    local_80 = 1;
+    local_88 = 0;
+    FUN_140350ea0(*(undefined8 *)(param_1 + 0x830),local_98,*(undefined4 *)(param_1 + 0x83c),
+                  *(undefined4 *)(param_1 + 0x83c));
+    FUN_140350fb0(*(undefined8 *)(param_1 + 0x830));
+    if (*(longlong *)(param_1 + 0xd60) != 0) {
+      FUN_1401532c0();
+    }
+    thunk_FUN_141b6b19f(local_30 ^ (ulonglong)auStack_b8);
+    return;
+  }
+                    /* WARNING: Subroutine does not return */
+  thunk_FUN_141b77d76(0,0x3e,"Tried to create container with incompatible heap.");
+}
+
+
+
+=== damage_param_loader_FUN_1403b5930 ===
+Function:  FUN_1403b5930 @ 1403b5930
+Body size: 400 bytes
+
+--- callers of FUN_1403b5930 @ 1403b5930 ---
+  from 1418e01e8  in <no fn>
+  from 1413c2360  in <no fn>
+  from 1413c2370  in <no fn>
+  from 1403b1857  in FUN_1403b1850 @ 1403b1850
+
+--- decompile ---
+
+void FUN_1403b5930(longlong *param_1)
+
+{
+  longlong *plVar1;
+  undefined8 uVar2;
+  longlong *plVar3;
+  char cVar4;
+  DWORD DVar5;
+  undefined8 uVar6;
+  longlong *plVar7;
+  uint *puVar8;
+  longlong *plVar9;
+  undefined2 *puVar10;
+  int iVar11;
+  undefined1 auStack_88 [32];
+  undefined1 local_68 [8];
+  undefined2 local_60;
+  undefined6 uStack_5e;
+  undefined8 local_50;
+  ulonglong local_48;
+  longlong *local_40;
+  undefined1 local_38;
+  ulonglong local_30;
+  
+  local_30 = DAT_1415e1c50 ^ (ulonglong)auStack_88;
+  uVar2 = *(undefined8 *)(DAT_1416148f0 + 0x30);
+  uVar6 = FUN_140aee210(0x1e);
+  plVar7 = (longlong *)FUN_140833dc0();
+  puVar8 = (uint *)(**(code **)(*plVar7 + 0x18))(plVar7,local_68,0);
+  if ((*puVar8 >> 5 & 1) != 0) {
+    iVar11 = 0;
+    local_48 = 7;
+    local_38 = 1;
+    local_50 = 0;
+    local_60 = 0;
+    local_40 = plVar7;
+    do {
+      plVar7 = param_1 + 2;
+      cVar4 = FUN_14048ba80(&local_60,iVar11);
+      if (cVar4 != '\0') {
+        puVar10 = &local_60;
+        if (7 < local_48) {
+          puVar10 = (undefined2 *)CONCAT62(uStack_5e,local_60);
+        }
+        plVar9 = (longlong *)FUN_1402ddb60(uVar2,puVar10,uVar6,0);
+        plVar3 = (longlong *)*plVar7;
+        if (plVar3 != plVar9) {
+          if (plVar3 != (longlong *)0x0) {
+            DVar5 = GetTickCount();
+            plVar1 = plVar3 + 2;
+            *(int *)plVar1 = (int)*plVar1 + -1;
+            *(DWORD *)(plVar3 + 5) = DVar5;
+            if ((int)*plVar1 == 0) {
+              FUN_140aff780(plVar3);
+            }
+            FUN_140aff440(plVar3);
+            *plVar7 = 0;
+          }
+          *plVar7 = (longlong)plVar9;
+          if (plVar9 != (longlong *)0x0) {
+            if (*(uint *)((longlong)plVar9 + 0x2c) < *(uint *)(param_1 + 3)) {
+              *(uint *)((longlong)plVar9 + 0x2c) = *(uint *)(param_1 + 3);
+              (**(code **)(*plVar9 + 0x68))(plVar9);
+            }
+            *(int *)(plVar9 + 2) = (int)plVar9[2] + 1;
+            *(int *)((longlong)plVar9 + 0x14) = *(int *)((longlong)plVar9 + 0x14) + 1;
+            FUN_140aff7a0(plVar9);
+          }
+        }
+      }
+      iVar11 = iVar11 + 1;
+      param_1 = plVar7;
+    } while (iVar11 < 0x17);
+    if (7 < local_48) {
+      (**(code **)(*local_40 + 0x68))(local_40,CONCAT62(uStack_5e,local_60));
+    }
+    thunk_FUN_141b6b19f(local_30 ^ (ulonglong)auStack_88);
+    return;
+  }
+                    /* WARNING: Subroutine does not return */
+  thunk_FUN_141b77d76(0,0x3e,"Tried to create container with incompatible heap.");
+}
+
+
+
+=== BossBattle_consumer_FUN_1404500b0 ===
+Function:  FUN_1404500b0 @ 1404500b0
+Body size: 372 bytes
+
+--- callers of FUN_1404500b0 @ 1404500b0 ---
+  from 1418eca64  in <no fn>
+  from 1413d6ef8  in <no fn>
+  from 1413d6f08  in <no fn>
+  from 1401be23e  in FUN_1401be130 @ 1401be130
+
+--- decompile ---
+
+void FUN_1404500b0(longlong param_1)
+
+{
+  longlong lVar1;
+  undefined8 uVar2;
+  undefined8 uVar3;
+  
+  lVar1 = *(longlong *)(DAT_1416148f0 + 0x30);
+  if (lVar1 != 0) {
+    uVar2 = FUN_140aee210(0x1e);
+    uVar3 = FUN_14048bf20();
+    uVar3 = FUN_1402ddb60(lVar1,uVar3,uVar2,0);
+    FUN_1400eef10(param_1 + 0xe0,uVar3);
+    uVar3 = FUN_14048bf10();
+    uVar3 = FUN_1402ddb60(lVar1,uVar3,uVar2,0);
+    FUN_1400eef10(param_1 + 0xf0,uVar3);
+    uVar3 = FUN_14048bf50();
+    uVar3 = FUN_1402ddb60(lVar1,uVar3,uVar2,0);
+    FUN_1400eef10(param_1 + 0x100,uVar3);
+    uVar3 = FUN_14048bf70();
+    uVar3 = FUN_1402ddb60(lVar1,uVar3,uVar2,0);
+    FUN_1400eef10(param_1 + 0x110,uVar3);
+    uVar3 = FUN_14048bf60();
+    uVar3 = FUN_1402ddb60(lVar1,uVar3,uVar2,0);
+    FUN_1400eef10(param_1 + 0x120,uVar3);
+    uVar3 = FUN_14048bf40();
+    uVar3 = FUN_1402ddb60(lVar1,uVar3,uVar2,0);
+    FUN_1400eef10(param_1 + 0x130,uVar3);
+    uVar3 = FUN_14048bf00();
+    uVar3 = FUN_1402ddb60(lVar1,uVar3,uVar2,0);
+    FUN_1400eef10(param_1 + 0x140,uVar3);
+    uVar3 = FUN_14048bf80();
+    uVar2 = FUN_1402ddb60(lVar1,uVar3,uVar2,0);
+    FUN_1400eef10(param_1 + 0x150,uVar2);
+    FUN_140474cf0(*(undefined8 *)(param_1 + 0x20));
+  }
+  return;
+}
+
+
+
+=== ChrPhantom_consumer_FUN_14024a110 ===
+Function:  FUN_14024a110 @ 14024a110
+Body size: 169 bytes
+
+--- callers of FUN_14024a110 @ 14024a110 ---
+  from 1418c6478  in <no fn>
+  from 141394044  in <no fn>
+  from 141394054  in <no fn>
+  from 1402496fa  in FUN_1402496c0 @ 1402496c0
+
+--- decompile ---
+
+void FUN_14024a110(longlong param_1)
+
+{
+  undefined8 uVar1;
+  undefined8 uVar2;
+  longlong lVar3;
+  
+  lVar3 = 0;
+  if (DAT_1416148f0 != 0) {
+    lVar3 = *(longlong *)(DAT_1416148f0 + 0x30);
+  }
+  if (lVar3 != 0) {
+    uVar1 = FUN_140aee210(0x1e);
+    uVar2 = FUN_14048c990();
+    uVar2 = FUN_1402ddb60(lVar3,uVar2,uVar1,0);
+    FUN_1400eef10(param_1,uVar2);
+    uVar2 = FUN_14048c980();
+    uVar2 = FUN_1402ddb60(lVar3,uVar2,uVar1,0);
+    FUN_1400eef10(param_1 + 0x10,uVar2);
+    uVar2 = FUN_14048c970();
+    uVar1 = FUN_1402ddb60(lVar3,uVar2,uVar1,0);
+    FUN_1400eef10(param_1 + 0x20,uVar1);
+  }
+  return;
+}
+
+
+
+=== Every function that references the L"EnemyParam" string ===
+  FUN_14048b620 @ 14048b620  (2 xref)
+
+=== Top-20 small leaf functions by caller count ===
+  __CxxFrameHandler3 @ 140c2ded8  body=135 bytes  callers=9044
+  FUN_140833320 @ 140833320  body=19 bytes  callers=4009
+  __GSHandlerCheck @ 140c2c940  body=29 bytes  callers=3705
+  FUN_140c2e1fc @ 140c2e1fc  body=51 bytes  callers=2167
+  FUN_140832f50 @ 140832f50  body=152 bytes  callers=2053
+  FUN_140832e70 @ 140832e70  body=71 bytes  callers=2053
+  FUN_140832f10 @ 140832f10  body=50 bytes  callers=2053
+  FUN_1406d2c40 @ 1406d2c40  body=55 bytes  callers=1927
+  FUN_140c288ec @ 140c288ec  body=53 bytes  callers=1680
+  FUN_1408389e0 @ 1408389e0  body=78 bytes  callers=1288
+  FUN_140833340 @ 140833340  body=72 bytes  callers=1251
+  FUN_1406d28b0 @ 1406d28b0  body=143 bytes  callers=1112
+  __chkstk @ 140c2eb20  body=78 bytes  callers=1041
+  FUN_140833dc0 @ 140833dc0  body=18 bytes  callers=1006
+  __GSHandlerCheck_EH @ 140c30a38  body=143 bytes  callers=964
+  FUN_1406d27f0 @ 1406d27f0  body=179 bytes  callers=902
+  FUN_140027c80 @ 140027c80  body=95 bytes  callers=849
+  FUN_140255630 @ 140255630  body=18 bytes  callers=710
+  FUN_1406d3030 @ 1406d3030  body=86 bytes  callers=707
+  FUN_14083f580 @ 14083f580  body=185 bytes  callers=648
+
+=== Done ===

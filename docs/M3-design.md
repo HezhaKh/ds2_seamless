@@ -59,10 +59,50 @@ From recon (see `recon/strings_scaling.csv` + `chokepoints_m3.txt`):
 This means the simplest boss-test is: **does this enemy come from `BossParam` or
 `EnemyParam`?** That's a flag on the ChrIns or determinable from the row source.
 
-## Hook chokepoint (STILL TBD — needs one more recon pass)
+## Hook chokepoint (STILL TBD — static analysis exhausted)
 
 We need to find: **the function that initializes a `ChrIns`'s `maxHp` and
 `damage` fields by reading from `EnemyParam` / `BossParam`**.
+
+### What pass-2 + pass-3 static analysis told us
+
+The param-resource architecture is clear:
+
+```
+ChrParamLoader (FUN_140359bb0)
+  └─ iterates 0x52 names from FUN_14048b620
+     └─ calls FUN_1402ddb60(mgr, L"param:/X.param", typeId=0x1e, 0)
+        = the "resource-by-name" service (see chokepoints_m3_pass3.txt)
+           └─ returns a wrapped resource pointer; stores at
+              `mgr + 0x310 + 0x10 * index`
+```
+
+So the EnemyParam *file* lives at `<chrparam_holder> + 0x310 + 4*0x10 = +0x350`.
+But the row-by-id read (`EnemyParam[id].maxHp`) sits behind several vtable
+dispatches on the resource wrapper, and the row struct layout isn't recoverable
+without RTTI.
+
+The three "sibling 2053-callers" candidates from pass 2 (`FUN_140832f50/e70/f10`)
+turned out to be **TLS plumbing**, not param accessors.
+
+### Realistic next step: Cheat Engine live introspection
+
+Static decompilation got us the architecture; CE gets us the precise instruction.
+Workflow:
+
+1. Launch the game with `_debug_player_count = 1`, ds2sc M2 hooks armed.
+2. CE: attach to `DarkSoulsII.exe`, scan for HP int (e.g. 50 for a Hollow Infantry
+   at Things Betwixt).
+3. Take damage, scan-decreased; iterate until 1 result.
+4. Right-click the address → "Find out what writes this address" (for max-HP
+   init we want **reads** instead — "Find out what accesses this address").
+5. Trigger a load (warp, save-quit-reload) so the init runs again. CE shows the
+   instruction; its containing function is the row-reader.
+6. That function's RVA is the M3 hook target. Replace pass-3's TBD with the real
+   address, then implement.
+
+After CE pins the address: the hook itself is small (~50 LOC) and we know exactly
+how to write it.
 
 Three candidate strategies:
 
@@ -74,18 +114,17 @@ Three candidate strategies:
 
 **Recommendation: A**, fall back to **B** if A's reader is too well-inlined.
 
-**Recon still needed before coding**:
-1. Identify `EnemyParam` row struct layout (offset of `maxHp`, `physicsAttackPower`).
-   - Strategy: find the BinderTPL/param-row-by-ID lookup function and look at what
-     fields are accessed near the call sites.
-2. Identify the function that copies those fields into a ChrIns instance.
-   - Strategy: from `FUN_140359bb0` (caller of the param-name registry), walk
-     toward the row-bytes-to-ChrIns code.
-3. Cross-check with `FUN_1404500b0` (the BossBattleParam loader) to see if it
-   provides a clean "is this entity in a boss arena" oracle.
+**Recon still needed before coding** (CE workflow above is the path):
+1. CE-derived RVA of the row-reader that returns `EnemyParam.maxHp` for an
+   enemy ID.
+2. Confirm the same reader serves both Enemy and Boss param rows (or whether
+   bosses go through a separate path — likely via the BossParam table loaded
+   into the same `<chrparam_holder> + 0x310 + 0x35*0x10 = +0x660` slot).
+3. The field offset of `maxHp` inside the returned row (CE shows this directly
+   in the instruction operand).
 
-Once that's nailed down, the hook is small (~50 LOC) — multiply a couple of
-floats / ints and return.
+Once those three numbers are known: hook = `~50 LOC`, multiply two integers
+and return.
 
 ## What we do NOT do at M3
 

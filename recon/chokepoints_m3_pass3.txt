@@ -1,0 +1,172 @@
+ds2sc M3 chokepoints pass 3
+===========================
+
+=== resource_by_name_FUN_1402ddb60 ===
+Function: FUN_1402ddb60 @ 1402ddb60
+Body: 242 bytes
+  caller sample: FUN_1400ef180 @ 1400ef180
+  caller sample: FUN_1401716b0 @ 1401716b0
+  caller sample: FUN_1401ba7f0 @ 1401ba7f0
+  caller sample: FUN_140250840 @ 140250840
+  caller sample: FUN_140359bb0 @ 140359bb0
+--- decompile ---
+
+longlong FUN_1402ddb60(longlong param_1,undefined8 param_2,longlong param_3,undefined4 param_4)
+
+{
+  char cVar1;
+  undefined4 uVar2;
+  longlong lVar3;
+  undefined8 local_18;
+  undefined8 local_10;
+  
+  if (param_3 == 0) {
+    param_3 = *(longlong *)(param_1 + 0xe8);
+  }
+  local_10 = FUN_140b2ea40();
+  local_18 = param_2;
+  lVar3 = FUN_140b02360(param_1,&local_18);
+  if (lVar3 != 0) {
+    return lVar3;
+  }
+  cVar1 = FUN_140aeed50(DAT_1416751f8);
+  if (cVar1 == '\0') {
+    lVar3 = FUN_140833320(0xf8,8,param_3);
+    if (lVar3 != 0) {
+      lVar3 = FUN_140b2e630(lVar3,param_2,param_2,param_3);
+      goto LAB_1402ddc10;
+    }
+  }
+  else {
+    lVar3 = FUN_140833320(0xf8,8,param_3);
+    if (lVar3 != 0) {
+      lVar3 = FUN_1402df490(lVar3,param_2,param_2,param_3);
+      goto LAB_1402ddc10;
+    }
+  }
+  lVar3 = 0;
+LAB_1402ddc10:
+  *(undefined4 *)(lVar3 + 0xc0) = param_4;
+  uVar2 = FUN_1402dde00(param_2);
+  if (*(int *)(lVar3 + 0x4c) == 0) {
+    FUN_140afe940(lVar3 + 0x40,uVar2);
+  }
+  FUN_140b025b0(param_1,lVar3);
+  return lVar3;
+}
+
+
+
+=== leaf_152b_FUN_140832f50 ===
+Function: FUN_140832f50 @ 140832f50
+Body: 152 bytes
+  caller sample: FUN_140006ff0 @ 140006ff0
+  caller sample: FUN_1408392f0 @ 1408392f0
+  caller sample: FUN_140839ce0 @ 140839ce0
+  caller sample: FUN_140006ef0 @ 140006ef0
+  caller sample: FUN_14001dbe0 @ 14001dbe0
+--- decompile ---
+
+LPVOID FUN_140832f50(DWORD param_1,undefined8 param_2)
+
+{
+  longlong *plVar1;
+  LPVOID lpTlsValue;
+  
+  if (param_1 == 0) {
+                    /* WARNING: Subroutine does not return */
+    thunk_FUN_141b77d76("..\\..\\Source\\Win32\\TLS.cpp",0xbd,"Invalid TLS status.");
+  }
+  plVar1 = (longlong *)FUN_140838dd0();
+  lpTlsValue = (LPVOID)(**(code **)(*plVar1 + 0x48))(plVar1,param_2);
+  if (lpTlsValue == (LPVOID)0x0) {
+                    /* WARNING: Subroutine does not return */
+    thunk_FUN_141b77d76("..\\..\\Source\\Win32\\TLS.cpp",0xc0,"Failed to allocate TLS Object.");
+  }
+  thunk_FUN_141b947d1(lpTlsValue,0,param_2);
+  *(DWORD *)((longlong)lpTlsValue + 8) = param_1;
+  TlsSetValue(param_1,lpTlsValue);
+  FUN_1408330e0(lpTlsValue);
+  return lpTlsValue;
+}
+
+
+
+=== leaf_71b_FUN_140832e70 ===
+Function: FUN_140832e70 @ 140832e70
+Body: 71 bytes
+  caller sample: FUN_140006ff0 @ 140006ff0
+  caller sample: FUN_1408392f0 @ 1408392f0
+  caller sample: FUN_140839ce0 @ 140839ce0
+  caller sample: FUN_140006ef0 @ 140006ef0
+  caller sample: FUN_14001dbe0 @ 14001dbe0
+--- decompile ---
+
+void FUN_140832e70(DWORD *param_1)
+
+{
+  DWORD DVar1;
+  longlong *plVar2;
+  
+  plVar2 = (longlong *)FUN_140833030();
+  (**(code **)(*plVar2 + 0x10))(plVar2,0xffffffff);
+  DVar1 = *param_1;
+  while (DVar1 == 0) {
+    DVar1 = TlsAlloc();
+    *param_1 = DVar1;
+  }
+                    /* WARNING: Could not recover jumptable at 0x000140832eb3. Too many branches */
+                    /* WARNING: Treating indirect jump as call */
+  (**(code **)(*plVar2 + 0x20))(plVar2);
+  return;
+}
+
+
+
+=== leaf_50b_FUN_140832f10 ===
+Function: FUN_140832f10 @ 140832f10
+Body: 50 bytes
+  caller sample: FUN_140006ff0 @ 140006ff0
+  caller sample: FUN_1408392f0 @ 1408392f0
+  caller sample: FUN_140839ce0 @ 140839ce0
+  caller sample: FUN_140006ef0 @ 140006ef0
+  caller sample: FUN_14001dbe0 @ 14001dbe0
+--- decompile ---
+
+void FUN_140832f10(DWORD param_1)
+
+{
+  if (param_1 == 0) {
+                    /* WARNING: Subroutine does not return */
+    thunk_FUN_141b77d76("..\\..\\Source\\Win32\\TLS.cpp",0xa7,"Invalid TLS status.");
+  }
+                    /* WARNING: Could not recover jumptable at 0x000140832f3b. Too many branches */
+                    /* WARNING: Treating indirect jump as call */
+  TlsGetValue(param_1);
+  return;
+}
+
+
+
+=== leaf_18b_FUN_140833dc0 ===
+Function: FUN_140833dc0 @ 140833dc0
+Body: 18 bytes
+  caller sample: FUN_140a46c20 @ 140a46c20
+  caller sample: FUN_140a59000 @ 140a59000
+  caller sample: FUN_140a6b870 @ 140a6b870
+  caller sample: FUN_140aff220 @ 140aff220
+  caller sample: FUN_140003740 @ 140003740
+--- decompile ---
+
+longlong FUN_140833dc0(void)
+
+{
+  longlong lVar1;
+  
+  lVar1 = FUN_140834b90();
+  return lVar1 + 0x28;
+}
+
+
+
+=== Done ===
