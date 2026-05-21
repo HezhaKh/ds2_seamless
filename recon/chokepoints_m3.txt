@@ -1,0 +1,241 @@
+ds2sc M3 chokepoints
+====================
+Program: DarkSoulsII.exe
+Image base: 140000000
+
+=== EnemyParam_strref ===
+Data: 1410f1570
+  xref from 14048b661  in  FUN_14048b620 @ 14048b620
+  xref from 14048b668  in  FUN_14048b620 @ 14048b620
+
+=== EnemyDamageParam_strref ===
+Data: 1410f22a0
+  xref from 14048ba99  in  FUN_14048ba80 @ 14048ba80
+  xref from 14048baa0  in  FUN_14048ba80 @ 14048ba80
+
+=== BossBattleParam_strref ===
+Data: 1410f3460
+  xref from 14048bf00  in  FUN_14048bf00 @ 14048bf00
+
+=== ChrNetworkPhantomParam_strref ===
+Data: 1410f2080
+  xref from 14048b9c5  in  FUN_14048b620 @ 14048b620
+  xref from 14048b9cc  in  FUN_14048b620 @ 14048b620
+
+=== ChrNetworkPhantomSoulRateParam_strref ===
+Data: 1410f20b0
+  xref from 14048b9d3  in  FUN_14048b620 @ 14048b620
+  xref from 14048b9da  in  FUN_14048b620 @ 14048b620
+
+=== ChrPhantomParam_strref ===
+Data: 1410f3c80
+  xref from 14048c980  in  FUN_14048c980 @ 14048c980
+
+=== PlayerStatusParam_strref ===
+Data: 1410f1f40
+  xref from 14048b955  in  FUN_14048b620 @ 14048b620
+  xref from 14048b95c  in  FUN_14048b620 @ 14048b620
+
+=== NpcPlayerStatusParam_strref ===
+Data: 1410f1f98
+  xref from 14048b971  in  FUN_14048b620 @ 14048b620
+  xref from 14048b978  in  FUN_14048b620 @ 14048b620
+
+=== ChrCommonParam_strref ===
+Data: 1410f1508
+  xref from 14048b631  in  FUN_14048b620 @ 14048b620
+  xref from 14048b63f  in  FUN_14048b620 @ 14048b620
+
+=== ParamRegistry_FUN_14048b620 ===
+Function:  FUN_14048b620 @ 14048b620
+Signature: undefined FUN_14048b620(void)
+Body size: 1112 bytes
+
+--- callers of FUN_14048b620 @ 14048b620 ---
+  from 1418f05b0  in <no fn> @ 
+  from 140359c77  in FUN_140359bb0 @ 140359bb0
+
+--- decompile ---
+
+undefined8 FUN_14048b620(undefined8 param_1,int param_2)
+
+{
+  wchar_t *local_298 [82];
+  
+  local_298[1] = L"ChrCommonParam";
+  local_298[0] = L"ChrParam";
+  local_298[2] = L"ChrMoveParam";
+  local_298[3] = L"ChrEquipWeaponParam";
+  local_298[4] = L"EnemyParam";
+  local_298[5] = L"EnemyCommonParam";
+  local_298[6] = L"EnemyMoveParam";
+  local_298[7] = L"EnemyEquipWeaponParam";
+  local_298[8] = L"PlayerCommonParam";
+  local_298[9] = L"EnemyBehaviorParam";
+  local_298[10] = L"EnemyBehaviorSecondParam";
+  local_298[0xb] = L"EnemyBehaviorThirdParam";
+  local_298[0xc] = L"EnemyComboBehaviorParam";
+  local_298[0xd] = L"EnemyColorParam";
+  local_298[0xe] = L"EnemyCullingParam";
+  local_298[0xf] = L"ChrEquipLoadParam";
+  local_298[0x10] = L"FallingParam";
+  local_298[0x11] = L"WeaponParam";
+  local_298[0x12] = L"WeaponActionCategoryParam";
+  local_298[0x13] = L"WeaponAttackMotionParam";
+  local_298[0x14] = L"WeaponTypeParam";
+  local_298[0x15] = L"WeaponStaminaCostParam";
+  local_298[0x16] = L"WeaponReinforceParam";
+  local_298[0x17] = L"WeaponStatsAffectParam";
+  local_298[0x18] = L"DualWieldingPermissionParam";
+  local_298[0x19] = L"ArmorParam";
+  local_298[0x1a] = L"ArmorReinforceParam";
+  local_298[0x1b] = L"ArmorHandsUpFParam";
+  local_298[0x1c] = L"EquipInterfereParam";
+  local_298[0x1d] = L"EquipCullingTargetParam";
+  local_298[0x1e] = L"CustomAttrSpecParam";
+  local_298[0x1f] = L"CustomAttrCostParam";
+  local_298[0x20] = L"ReinforceCostParam";
+  local_298[0x21] = L"ArrowParam";
+  local_298[0x22] = L"RingParam";
+  local_298[0x23] = L"SpellParam";
+  local_298[0x24] = L"SpellSoulConsumeParam";
+  local_298[0x25] = L"FootEffectSfxParam";
+  local_298[0x26] = L"PlayerChrGrowthParam";
+  local_298[0x27] = L"PlayerLevelUpSoulsParam";
+  local_298[0x28] = L"RelatePhysicalStatToLevelStatParam";
+  local_298[0x29] = L"PhysicalStatsPerLevelStatValuesParam";
+  local_298[0x2a] = L"MenuStatsParam";
+  local_298[0x2b] = L"HollowLevelStatsParam";
+  local_298[0x2c] = L"PlayerLackOfStatsParam";
+  local_298[0x2d] = L"NPCGenerateParam";
+  local_298[0x2e] = L"ChrEditParamBodyScale";
+  local_298[0x2f] = L"MaterialParam";
+  local_298[0x30] = L"GroundMaterialParam";
+  local_298[0x31] = L"LockOnParam";
+  local_298[0x32] = L"LockTargetParam";
+  local_298[0x33] = L"LockOnCameraOffsetParam";
+  local_298[0x34] = L"GuardLevelMotionParam";
+  local_298[0x35] = L"BossParam";
+  local_298[0x36] = L"BossPartsParam";
+  local_298[0x37] = L"BossPartsModelParam";
+  local_298[0x38] = L"BossEnemyGenerateParam";
+  local_298[0x39] = L"GrabParam";
+  local_298[0x3a] = L"DeadTypeParam";
+  local_298[0x3b] = L"TorchCtrlParam";
+  local_298[0x3c] = L"TorchOffCtrlParam";
+  local_298[0x3d] = L"ChrWetParam";
+  local_298[0x3e] = L"HitBackMatrixParam";
+  local_298[0x3f] = L"HitBackParam";
+  local_298[0x40] = L"ChrFullBodySfxParam";
+  local_298[0x41] = L"EnemyAttackMoveParam";
+  local_298[0x42] = L"PlayerStatusParam";
+  local_298[0x43] = L"PlayerStatusItemParam";
+  local_298[0x44] = L"NpcPlayerStatusParam";
+  local_298[0x45] = L"NpcPlayerSkinParam";
+  local_298[0x46] = L"CriminalAndDeceasedParam";
+  local_298[0x47] = L"ChrPointWindParam";
+  local_298[0x48] = L"PlayerLight";
+  local_298[0x49] = L"VowParam";
+  local_298[0x4a] = L"ChrNetworkPhantomParam";
+  local_298[0x4b] = L"ChrNetworkPhantomSoulRateParam";
+  local_298[0x4c] = L"ChrModelParam";
+  local_298[0x4d] = L"EnemyShotSfxParam";
+  local_298[0x4e] = L"ChrRoundDamageParam";
+  local_298[0x4f] = L"ChrRoundDropSoulParam";
+  local_298[0x50] = L"ChrMultiplayParam";
+  local_298[0x51] = L"FootEffectWaterSfxParam";
+  if ((-1 < param_2) && ((ulonglong)(longlong)param_2 < 0x52)) {
+    FUN_140003690(param_1,L"param:/%s.param",local_298[param_2]);
+    return 1;
+  }
+  FUN_140003690(param_1,L"param:/%s.param",L"ChrParam");
+  return 0;
+}
+
+
+
+=== EnemyDamage_FUN_14048ba80 ===
+Function:  FUN_14048ba80 @ 14048ba80
+Signature: undefined FUN_14048ba80(void)
+Body size: 319 bytes
+
+--- callers of FUN_14048ba80 @ 14048ba80 ---
+  from 1418f05bc  in <no fn> @ 
+  from 1403b59d7  in FUN_1403b5930 @ 1403b5930
+
+--- decompile ---
+
+wchar_t * FUN_14048ba80(undefined8 param_1,int param_2)
+
+{
+  wchar_t *local_c8 [24];
+  
+  local_c8[0] = L"PlayerDamageParam";
+  local_c8[1] = L"EnemyDamageParam";
+  local_c8[2] = L"SystemDamageParam";
+  local_c8[3] = L"DamageCtrlParam";
+  local_c8[4] = L"DamageAdjustParam";
+  local_c8[5] = L"DamageMovementPowerParam";
+  local_c8[6] = L"DamageAttackTypeRateParam";
+  local_c8[7] = L"DamageStyleRateParam";
+  local_c8[8] = L"DamageObjAttackAttrParam";
+  local_c8[9] = L"DamageEffectMaterialParam";
+  local_c8[10] = L"DamageEffectSfxParam";
+  local_c8[0xb] = L"DamageEffectSeParam";
+  local_c8[0xc] = L"DamageMotionWeightParam";
+  local_c8[0xd] = L"DeadDamageMotionWeightParam";
+  local_c8[0xe] = L"DamageDeadMotionWeightParam";
+  local_c8[0xf] = L"DamageMotionLadderWeightParam";
+  local_c8[0x10] = L"DamageMotionRopeWeightParam";
+  local_c8[0x11] = L"DamageWindCateParam";
+  local_c8[0x12] = L"DamageOverWriteParam";
+  local_c8[0x13] = L"DamageSfxTraceDummyPolyColorParam";
+  local_c8[0x14] = L"PoiseDamageParam";
+  local_c8[0x15] = L"DamageWeaponTypeParam";
+  local_c8[0x16] = L"DamageWeaponTypeDurabilityParam";
+  if ((-1 < param_2) && ((ulonglong)(longlong)param_2 < 0x17)) {
+    FUN_140003690(param_1,L"param:/%s.param",local_c8[param_2]);
+    return (wchar_t *)0x1;
+  }
+  return L"aram";
+}
+
+
+
+=== BossBattle_FUN_14048bf00 ===
+Function:  FUN_14048bf00 @ 14048bf00
+Signature: undefined FUN_14048bf00(void)
+Body size: 8 bytes
+
+--- callers of FUN_14048bf00 @ 14048bf00 ---
+  from 1404501c1  in FUN_1404500b0 @ 1404500b0
+
+--- decompile ---
+
+wchar_t * FUN_14048bf00(void)
+
+{
+  return L"param:/BossBattleParam.param";
+}
+
+
+
+=== ChrPhantom_FUN_14048c980 ===
+Function:  FUN_14048c980 @ 14048c980
+Signature: undefined FUN_14048c980(void)
+Body size: 8 bytes
+
+--- callers of FUN_14048c980 @ 14048c980 ---
+  from 14024a165  in FUN_14024a110 @ 14024a110
+
+--- decompile ---
+
+wchar_t * FUN_14048c980(void)
+
+{
+  return L"param:/ChrPhantomParam.param";
+}
+
+
+
+=== Done ===

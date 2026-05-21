@@ -1,0 +1,63 @@
+ds2sc M3 recon summary
+======================
+
+Program: DarkSoulsII.exe
+Image base: 140000000
+
+Keyword set:
+  NpcParam
+  EnemyParam
+  ChrInitParam
+  PlayerStatusParam
+  EnemyDamageParam
+  AtkParam
+  WepAbsorpParam
+  ChrIns
+  EnemyIns
+  PlayerIns
+  ChrCommon
+  EnemyManager
+  ChrManager
+  MaxHp
+  MaxHP
+  max_hp
+  maxHp
+  HitPoint
+  hitpoint
+  SetHp
+  GetHp
+  AddHp
+  SubHp
+  ApplyDamage
+  TakeDamage
+  _damageRate
+  DamageRate
+  damage_rate
+  atkPower
+  AtkPower
+  AttackPower
+  Defense
+  Absorp
+  absorp
+  scale
+  Scale
+  multiplier
+  Multiplier
+  PhantomParam
+  MultiPlayCorrection
+  isBoss
+  IsBoss
+  boss_
+  _boss
+  BossBattle
+  BossRoom
+  phantom
+  Phantom
+  summon
+  Summon
+  WhitePhantom
+  BlackPhantom
+
+Results:
+  scaling strings: 211  (-> strings_scaling.csv)
+  scaling symbols: 94  (-> symbols_scaling.csv)
