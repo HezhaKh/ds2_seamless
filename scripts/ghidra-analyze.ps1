@@ -17,7 +17,7 @@ $JdkHome    = 'C:\Program Files\Eclipse Adoptium\jdk-21.0.11.10-hotspot'
 $GhidraDir  = "$env:USERPROFILE\tools\ghidra\ghidra_12.1_PUBLIC"
 $ProjDir    = "$env:USERPROFILE\ds2sc-ghidra"
 $ProjName   = 'ds2sc'
-$Ds2Exe     = 'C:\Program Files (x86)\Steam\steamapps\common\Dark Souls II Scholar of the First Sin\Game\DarkSoulsII.exe'
+$Ds2Exe     = 'C:\Users\h\ds2-game\DarkSoulsII.exe'   # junction to <Steam install>\Game\
 $RepoRoot   = Split-Path -Parent $PSScriptRoot
 $ScriptDir  = Join-Path $RepoRoot 'ghidra-scripts'
 $OutDir     = Join-Path $RepoRoot 'recon'
@@ -35,11 +35,14 @@ $fso = New-Object -ComObject Scripting.FileSystemObject
 function ShortFile([string]$p) { $fso.GetFile($p).ShortPath }
 function ShortDir([string]$p)  { $fso.GetFolder($p).ShortPath }
 
-$Ds2ExeS    = ShortFile $Ds2Exe
 $ScriptDirS = ShortDir  $ScriptDir
 $OutDirS    = ShortDir  $OutDir
 $ProjDirS   = ShortDir  $ProjDir
 $Analyze    = ShortFile (Join-Path $GhidraDir 'support\analyzeHeadless.bat')
+
+# We import the DS2 exe through a paren-free junction so Ghidra stores it
+# under its real name (and dodges the analyzeHeadless.bat (x86) parser bug).
+$Ds2BaseS   = Split-Path -Leaf $Ds2Exe
 
 $env:JAVA_HOME = $JdkHome
 
@@ -50,10 +53,10 @@ if ($Reanalyze -or -not $projExists) {
     } else {
         Write-Host "First-time import + analysis. This will take a while (~28MB binary; expect 15-60 min)." -ForegroundColor Cyan
     }
-    & cmd /c "`"$Analyze`" `"$ProjDirS`" $ProjName -import `"$Ds2ExeS`" -overwrite -scriptPath `"$ScriptDirS`" -postScript m2_recon.py `"$OutDirS`""
+    & cmd /c "`"$Analyze`" `"$ProjDirS`" $ProjName -import `"$Ds2Exe`" -overwrite -scriptPath `"$ScriptDirS`" -postScript m2_recon.py `"$OutDirS`""
 } else {
     Write-Host "Project exists; re-running post-script only." -ForegroundColor Cyan
-    & cmd /c "`"$Analyze`" `"$ProjDirS`" $ProjName -process DarkSoulsII.exe -scriptPath `"$ScriptDirS`" -postScript m2_recon.py `"$OutDirS`" -noanalysis"
+    & cmd /c "`"$Analyze`" `"$ProjDirS`" $ProjName -process $Ds2BaseS -scriptPath `"$ScriptDirS`" -postScript m2_recon.py `"$OutDirS`" -noanalysis"
 }
 
 if ($LASTEXITCODE -ne 0) { throw "Ghidra exited $LASTEXITCODE" }
