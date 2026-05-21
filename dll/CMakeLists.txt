@@ -3,6 +3,9 @@ add_library(ds2sc SHARED
     core.cpp
     log.cpp
     settings.cpp
+    version_gate.cpp
+    hooks/iat.cpp
+    hooks/getaddrinfo_hook.cpp
 )
 
 set_target_properties(ds2sc PROPERTIES
@@ -10,7 +13,7 @@ set_target_properties(ds2sc PROPERTIES
     PREFIX ""
 )
 
-target_link_libraries(ds2sc PRIVATE)
+target_link_libraries(ds2sc PRIVATE bcrypt ws2_32)
 
 add_custom_command(TARGET ds2sc POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "${DS2SC_GAME_DIR}/SeamlessCoop"

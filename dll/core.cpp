@@ -1,6 +1,8 @@
 #include "core.h"
 #include "log.h"
 #include "settings.h"
+#include "version_gate.h"
+#include "hooks/getaddrinfo_hook.h"
 
 #include <windows.h>
 #include <psapi.h>
@@ -60,7 +62,14 @@ DWORD WINAPI bootstrap(LPVOID instance) {
         s.boss_health_scaling);
     log::info(line);
 
-    log::info("ds2sc: bootstrap done (M1 — no game hooks yet)");
+    if (!version_gate::check()) {
+        log::warn("ds2sc: bootstrap done (hooks NOT installed — version gate refused)");
+        return 0;
+    }
+
+    hooks::dns::install();
+
+    log::info("ds2sc: bootstrap done (M2 — DNS hooks armed)");
     return 0;
 }
 
