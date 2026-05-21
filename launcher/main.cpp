@@ -82,6 +82,12 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
     if (!file_exists(dll))
         fatal(L"SeamlessCoop\\ds2sc.dll not found next to the launcher.");
 
+    // DS2 SOTFS Steam appid. Without these env vars steam_api64.dll!SteamAPI_Init
+    // returns false and the game calls ExitProcess shortly after — silently, no
+    // error dialog. The child process inherits the parent env when we pass NULL.
+    SetEnvironmentVariableW(L"SteamAppId",  L"335300");
+    SetEnvironmentVariableW(L"SteamGameId", L"335300");
+
     STARTUPINFOW si{};
     si.cb = sizeof(si);
     PROCESS_INFORMATION pi{};
