@@ -1,108 +1,107 @@
-# M2 recon — dump everything we need from DarkSoulsII.exe to find the
+# -*- coding: utf-8 -*-
+# M2 recon -- dump everything we need from DarkSoulsII.exe to find the
 # online-disconnect chokepoint and confirm imports we'll hook.
 #
-# Run via scripts\ghidra-analyze.cmd. Output written to args[0] (the recon/ dir).
+# Writes a status.log incrementally so we can see exactly where it dies
+# if the headless run is otherwise silent.
 #
-# Outputs:
-#   imports.csv            DLL!Function rows for every external import
-#   exports.csv            Functions the binary itself exports (DS2 has few)
-#   strings_netcode.csv    String-literal matches for online/network/steam keywords
-#                          plus the address(es) that reference each string
-#   steam_api_xrefs.csv    For every steam_api64.dll import, list functions that call it
-#   summary.txt            Human-readable rollup
-#
-# Jython 2.7 (Ghidra's embedded interpreter). Watch the syntax — no f-strings.
-#@author ds2sc
-#@category ds2sc
-#@runtime Jython
+# @author ds2sc
+# @category ds2sc
+# @runtime Jython
 
 import os
 import csv
+import traceback
 
-from ghidra.program.model.symbol import SourceType
-from ghidra.program.model.symbol import RefType
-from ghidra.app.util import XReferenceUtil
-
-# Arguments: [0] = output directory
 args = getScriptArgs()
-if not args:
-    print("ERROR: pass output dir as first arg")
-    raise SystemExit
-out_dir = args[0]
+out_dir = args[0] if args else r"C:\Users\h\ds2sc\recon"
+
 if not os.path.isdir(out_dir):
     os.makedirs(out_dir)
 
-program = currentProgram
-listing = program.getListing()
-sym_table = program.getSymbolTable()
-ext_mgr = program.getExternalManager()
+status_path = os.path.join(out_dir, "status.log")
+status = open(status_path, "w")
 
-print("=== ds2sc M2 recon on " + program.getName() + " ===")
-print("Image base:    " + str(program.getImageBase()))
-print("Language:      " + str(program.getLanguageID()))
-print("Compiler spec: " + str(program.getCompilerSpec()))
+def log(msg):
+    status.write(str(msg) + "\n")
+    status.flush()
+    println("[m2_recon] " + str(msg))
 
-# ---------------------------------------------------------------------------
-# Imports
-# ---------------------------------------------------------------------------
-imports_path = os.path.join(out_dir, "imports.csv")
-with open(imports_path, "w") as f:
-    w = csv.writer(f, lineterminator="\n")
-    w.writerow(["library", "function", "address"])
-    for lib_name in ext_mgr.getExternalLibraryNames():
-        for sym in sym_table.getExternalSymbols():
-            if sym.getParentNamespace().getName() == lib_name:
-                addr = ""
-                refs = list(sym.getReferences())
-                if refs:
-                    addr = str(refs[0].getFromAddress())
-                w.writerow([lib_name, sym.getName(), addr])
-print("Wrote " + imports_path)
+log("script started")
+log("out_dir = " + out_dir)
 
-# ---------------------------------------------------------------------------
-# Exports (game binaries typically have very few — mostly DllMain-style entries)
-# ---------------------------------------------------------------------------
-exports_path = os.path.join(out_dir, "exports.csv")
-with open(exports_path, "w") as f:
-    w = csv.writer(f, lineterminator="\n")
-    w.writerow(["name", "address"])
-    for sym in sym_table.getAllSymbols(True):
-        if sym.isExternalEntryPoint():
-            w.writerow([sym.getName(), str(sym.getAddress())])
-print("Wrote " + exports_path)
+try:
+    log("currentProgram = " + str(currentProgram.getName()))
+    log("image base = " + str(currentProgram.getImageBase()))
 
-# ---------------------------------------------------------------------------
-# Strings of interest
-# ---------------------------------------------------------------------------
-KEYWORDS = [
-    "connect", "reconnect", "matchmaking", "matchmake",
-    "session", "lobby", "online", "offline",
-    "NetMan", "FrpgNet", "FRPG_NetMan", "FrpgNetMsg",
-    "GhostStone", "BloodStain", "BloodMessage",
-    "SoulMemory", "Soul memory", "soulmemory",
-    "Searching for messages", "Connecting",
-    "Steam", "SteamAPI", "matchmake",
-    "AntiCheat", "anticheat",
-    ".sl2", "SL2", "save",
-    "Phantom", "phantom", "summon",
-    "regulation", "Regulation",
-]
+    listing  = currentProgram.getListing()
+    sym_table = currentProgram.getSymbolTable()
+    ext_mgr  = currentProgram.getExternalManager()
+    fn_mgr   = currentProgram.getFunctionManager()
+    ref_mgr  = currentProgram.getReferenceManager()
+    log("got managers")
 
-# Lowercase-compare keyword set
-kw_lower = [k.lower() for k in KEYWORDS]
+    # -------- imports.csv --------------------------------------------------
+    log("imports: collecting...")
+    n_imports = 0
+    imports_path = os.path.join(out_dir, "imports.csv")
+    f = open(imports_path, "w")
+    f.write("library,function,address\n")
+    for sym in sym_table.getExternalSymbols():
+        lib_name = sym.getParentNamespace().getName()
+        refs = sym.getReferences()
+        if refs and len(refs) > 0:
+            addr = str(refs[0].getFromAddress())
+        else:
+            addr = ""
+        f.write('"%s","%s","%s"\n' % (lib_name, sym.getName(), addr))
+        n_imports += 1
+    f.close()
+    log("imports: %d rows -> %s" % (n_imports, imports_path))
 
-strings_path = os.path.join(out_dir, "strings_netcode.csv")
-with open(strings_path, "w") as f:
-    w = csv.writer(f, lineterminator="\n")
-    w.writerow(["address", "type", "value", "xref_count", "first_xref"])
+    # -------- exports.csv --------------------------------------------------
+    log("exports: collecting...")
+    exports_path = os.path.join(out_dir, "exports.csv")
+    n_exports = 0
+    f = open(exports_path, "w")
+    f.write("name,address\n")
+    # entry points are the program's exported / entry symbols
+    for addr in sym_table.getExternalEntryPointIterator():
+        sym = sym_table.getPrimarySymbol(addr)
+        name = sym.getName() if sym else ""
+        f.write('"%s","%s"\n' % (name, str(addr)))
+        n_exports += 1
+    f.close()
+    log("exports: %d rows -> %s" % (n_exports, exports_path))
 
-    data_iter = listing.getDefinedData(True)
-    while data_iter.hasNext():
-        d = data_iter.next()
+    # -------- strings_netcode.csv -----------------------------------------
+    KEYWORDS = [
+        "connect", "reconnect", "matchmaking", "matchmake",
+        "session", "lobby", "online", "offline",
+        "netman", "frpgnet", "frpg_netman", "frpgnetmsg",
+        "ghoststone", "bloodstain", "bloodmessage",
+        "soulmemory", "soul memory",
+        "searching for messages",
+        "steam",
+        "anticheat",
+        ".sl2", "sl2",
+        "phantom", "summon",
+        "regulation",
+    ]
+
+    log("strings: scanning...")
+    n_strings = 0
+    n_seen = 0
+    strings_path = os.path.join(out_dir, "strings_netcode.csv")
+    f = open(strings_path, "w")
+    f.write("address,type,value,xref_count,first_xref\n")
+    di = listing.getDefinedData(True)
+    while di.hasNext():
+        d = di.next()
+        n_seen += 1
         if d is None:
             continue
         dt_name = d.getDataType().getName().lower()
-        # Strings show up as "string", "unicode", "TerminatedCString", etc.
         if "string" not in dt_name and "char" not in dt_name and "unicode" not in dt_name:
             continue
         v = d.getValue()
@@ -110,49 +109,71 @@ with open(strings_path, "w") as f:
             continue
         s = str(v)
         s_lower = s.lower()
-        if not any(k in s_lower for k in kw_lower):
+        matched = False
+        for k in KEYWORDS:
+            if k in s_lower:
+                matched = True
+                break
+        if not matched:
             continue
+        refs = ref_mgr.getReferencesTo(d.getAddress())
+        xc = 0
+        first_x = ""
+        for r in refs:
+            if xc == 0:
+                first_x = str(r.getFromAddress())
+            xc += 1
+        # escape internal quotes
+        s_clean = s.replace('"', "'")
+        f.write('"%s","%s","%s",%d,"%s"\n' % (str(d.getAddress()), d.getDataType().getName(), s_clean, xc, first_x))
+        n_strings += 1
+    f.close()
+    log("strings: %d matched out of %d defined-data items -> %s" % (n_strings, n_seen, strings_path))
 
-        xrefs = XReferenceUtil.getXReferences(d, 100)
-        first = str(xrefs[0].getFromAddress()) if xrefs else ""
-        w.writerow([str(d.getAddress()), d.getDataType().getName(),
-                    s.encode("utf-8", "replace"), len(xrefs), first])
-print("Wrote " + strings_path)
-
-# ---------------------------------------------------------------------------
-# steam_api64.dll cross-references
-# ---------------------------------------------------------------------------
-steam_path = os.path.join(out_dir, "steam_api_xrefs.csv")
-with open(steam_path, "w") as f:
-    w = csv.writer(f, lineterminator="\n")
-    w.writerow(["steam_function", "caller_address", "caller_function"])
-
+    # -------- steam_api64.dll xrefs ---------------------------------------
+    log("steam xrefs: collecting...")
+    n_steam = 0
+    steam_path = os.path.join(out_dir, "steam_api_xrefs.csv")
+    f = open(steam_path, "w")
+    f.write("steam_function,caller_address,caller_function\n")
     for sym in sym_table.getExternalSymbols():
         if sym.getParentNamespace().getName().lower() != "steam_api64.dll":
             continue
         for ref in sym.getReferences():
             from_addr = ref.getFromAddress()
-            fn = listing.getFunctionContaining(from_addr)
+            fn = fn_mgr.getFunctionContaining(from_addr)
             fn_name = fn.getName() if fn else ""
-            w.writerow([sym.getName(), str(from_addr), fn_name])
-print("Wrote " + steam_path)
+            f.write('"%s","%s","%s"\n' % (sym.getName(), str(from_addr), fn_name))
+            n_steam += 1
+    f.close()
+    log("steam xrefs: %d rows -> %s" % (n_steam, steam_path))
 
-# ---------------------------------------------------------------------------
-# Summary
-# ---------------------------------------------------------------------------
-summary_path = os.path.join(out_dir, "summary.txt")
-with open(summary_path, "w") as f:
+    # -------- summary.txt --------------------------------------------------
+    log("summary: writing...")
+    summary_path = os.path.join(out_dir, "summary.txt")
+    f = open(summary_path, "w")
     f.write("ds2sc M2 recon summary\n")
     f.write("======================\n\n")
-    f.write("Program:       " + program.getName() + "\n")
-    f.write("Image base:    " + str(program.getImageBase()) + "\n")
-    f.write("Language:      " + str(program.getLanguageID()) + "\n")
-    f.write("Compiler spec: " + str(program.getCompilerSpec()) + "\n\n")
+    f.write("Program:       %s\n" % currentProgram.getName())
+    f.write("Image base:    %s\n" % str(currentProgram.getImageBase()))
+    f.write("Language:      %s\n" % str(currentProgram.getLanguageID()))
+    f.write("Compiler spec: %s\n\n" % str(currentProgram.getCompilerSpec()))
+    libs = sorted(list(ext_mgr.getExternalLibraryNames()))
+    f.write("External libraries (%d):\n" % len(libs))
+    for lib in libs:
+        f.write("  " + lib + "\n")
+    f.write("\nCounts:\n")
+    f.write("  imports:      %d\n" % n_imports)
+    f.write("  exports:      %d\n" % n_exports)
+    f.write("  strings hit:  %d (of %d defined-data scanned)\n" % (n_strings, n_seen))
+    f.write("  steam xrefs:  %d\n" % n_steam)
+    f.close()
+    log("summary: done")
 
-    libs = list(ext_mgr.getExternalLibraryNames())
-    f.write("External libraries (" + str(len(libs)) + "):\n")
-    for l in sorted(libs):
-        f.write("  " + l + "\n")
-print("Wrote " + summary_path)
+    log("=== Done ===")
 
-print("=== Done ===")
+except Exception:
+    log("EXCEPTION:")
+    log(traceback.format_exc())
+finally:
+    status.close()

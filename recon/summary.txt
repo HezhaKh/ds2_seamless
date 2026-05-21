@@ -1,0 +1,30 @@
+ds2sc M2 recon summary
+======================
+
+Program:       DarkSoulsII.exe
+Image base:    140000000
+Language:      x86:LE:64:default
+Compiler spec: ghidra.program.database.ProgramCompilerSpec@4f6d1466
+
+External libraries (15):
+  ADVAPI32.DLL
+  D3D11.DLL
+  DINPUT8.DLL
+  DXGI.DLL
+  FMODEX64.DLL
+  FMOD_EVENT64.DLL
+  KERNEL32.DLL
+  OLE32.DLL
+  OLEAUT32.DLL
+  SHELL32.DLL
+  STEAM_API64.DLL
+  USER32.DLL
+  WINMM.DLL
+  WS2_32.DLL
+  XINPUT1_3.DLL
+
+Counts:
+  imports:      408
+  exports:      1
+  strings hit:  914 (of 432252 defined-data scanned)
+  steam xrefs:  135
