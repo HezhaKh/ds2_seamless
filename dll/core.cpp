@@ -3,6 +3,7 @@
 #include "settings.h"
 #include "version_gate.h"
 #include "hooks/getaddrinfo_hook.h"
+#include "hooks/savefile_hook.h"
 #include "player_count.h"
 #include "scaling.h"
 
@@ -86,6 +87,11 @@ DWORD WINAPI bootstrap(LPVOID instance) {
     }
 
     hooks::dns::install();
+
+    // M4 — redirect save files to a mod-specific extension so vanilla .sl2
+    // saves are never touched.
+    hooks::savefile::configure(s.save_file_extension);
+    hooks::savefile::install();
 
     // M3 — per-player enemy HP scaling.
     player_count::set(s.debug_player_count);

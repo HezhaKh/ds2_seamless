@@ -6,6 +6,7 @@ add_library(ds2sc SHARED
     version_gate.cpp
     hooks/iat.cpp
     hooks/getaddrinfo_hook.cpp
+    hooks/savefile_hook.cpp
     player_count.cpp
     scaling.cpp
 )
