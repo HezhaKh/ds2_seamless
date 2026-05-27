@@ -6,6 +6,8 @@ add_library(ds2sc SHARED
     version_gate.cpp
     hooks/iat.cpp
     hooks/getaddrinfo_hook.cpp
+    player_count.cpp
+    scaling.cpp
 )
 
 set_target_properties(ds2sc PROPERTIES

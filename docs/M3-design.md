@@ -1,165 +1,102 @@
-# M3 — Per-player enemy/boss scaling (DESIGN)
+# M3 — Per-player enemy/boss HP scaling
 
-> Status: **design draft, needs one more Ghidra pass before code**.
-> Schema is final. Hook chokepoint is not.
+> Status: **cut 1a (enemy HP) implemented + verified on hardware.**
+> Cut 1b (boss-rate differentiation) pending.
 
 ## Goal
 
-When N players share a co-op session, scale enemy/boss HP and damage so the
-fight isn't trivial. Settings are read from `[SCALING]` in
-`ds2sc_settings.ini`. Same convention as DS3SC / ERSC: percent-per-extra-player.
+With N co-op players, scale enemy HP so fights aren't trivial. Mirrors
+DS3SC/ERSC `[SCALING]` (percent-per-extra-player), minus posture (DS2 has none).
+`mul = 1 + (N-1) * pct/100`. N=1 → vanilla.
 
-For N=1 (solo / no coop active) the multiplier is 1.0 — vanilla behavior.
+## Approach: runtime param-patch (chosen over code hooks)
 
-## INI schema (final, matches existing settings.ini template)
+DS2 loads its param tables once at boot and keeps them resident through
+save-load (verified: a patch applied at the title screen was still in effect
+after loading a save). So we multiply the HP field directly in the `EnemyParam`
+rows in memory at session start, snapshot originals for exact restore, and never
+inject executable code. Lower-risk than hooking the spawn-init instruction.
 
-```ini
-[SCALING]
-enemy_health_scaling  = 35   ; % per extra player, regular enemies
-enemy_damage_scaling  = 0    ; % per extra player, regular enemies
-boss_health_scaling   = 100  ; % per extra player, bosses
-boss_damage_scaling   = 0    ; % per extra player, bosses
-```
+This mechanism + its offsets came from the **boblord14 DS2 SOTFS Cheat Table
+(Bob Edition)** "Param Patcher v2" — community RE of the *base game*, which is
+within our clean-room rule (we never disassemble Luke's coop DLLs). It
+cross-validates our own Ghidra recon: the CT's `[[GameManagerImp]+30]` param
+repository is the same object our Ghidra found at `*(DAT_1416148f0+0x30)` in
+`FUN_1402ddb60`. We wrote 100% of the C++ ourselves; no CT code was copied.
 
-**Diff from DS3SC/ERSC**: drop `enemy_posture_scaling` and `boss_posture_scaling`
-— DS2 has no posture meter (only poise, which is a stagger-threshold, not a HP-like
-bar that scales).
-
-**Multiplier formula** (matches Luke's mods):
-```
-mul = 1.0 + (N - 1) * (scaling_pct / 100.0)
-```
-
-So `enemy_health_scaling = 35`, 4 players → `1.0 + 3 * 0.35 = 2.05x` HP.
-
-## Player-count source
-
-The multiplier needs **N** — the live coop player count. M5 will own this state.
-For M3 we expose a debug INI knob so we can verify the hook in isolation:
-
-```ini
-[SCALING]
-# Debug only — pretend this many players are in the session. M5 will replace
-# this with the live coop count. Default 1 = vanilla.
-_debug_player_count = 1
-```
-
-When M5 lands, `_debug_player_count` is removed and the lobby state feeds the
-multiplier directly.
-
-## Boss-vs-enemy detection
-
-From recon (see `recon/strings_scaling.csv` + `chokepoints_m3.txt`):
-
-- There are separate `BossParam` / `BossPartsParam` / `BossEnemyGenerateParam`
-  tables. So bosses have their own param rows (not just a flag on `EnemyParam`).
-- `BossBattleParam.param` is loaded specifically (`FUN_1404500b0` is the caller of
-  the filename-getter at `0x14048bf00`).
-
-This means the simplest boss-test is: **does this enemy come from `BossParam` or
-`EnemyParam`?** That's a flag on the ChrIns or determinable from the row source.
-
-## Hook chokepoint (STILL TBD — static analysis exhausted)
-
-We need to find: **the function that initializes a `ChrIns`'s `maxHp` and
-`damage` fields by reading from `EnemyParam` / `BossParam`**.
-
-### What pass-2 + pass-3 static analysis told us
-
-The param-resource architecture is clear:
+## Verified memory map
 
 ```
-ChrParamLoader (FUN_140359bb0)
-  └─ iterates 0x52 names from FUN_14048b620
-     └─ calls FUN_1402ddb60(mgr, L"param:/X.param", typeId=0x1e, 0)
-        = the "resource-by-name" service (see chokepoints_m3_pass3.txt)
-           └─ returns a wrapped resource pointer; stores at
-              `mgr + 0x310 + 0x10 * index`
+GameManagerImp static pointer : image RVA 0x16148f0   (== Ghidra DAT_1416148f0)
+MASTER_PARAM_TABLE            : [[[[GameManagerImp]+30]+118]+D8]+0
+param index entry (0x18 wide) : MASTER + 0x40 + 0x18*i
+     entry+0x10 (u32) = param data-block offset (rel. MASTER)
+     entry+0x14 (u32) = name-string offset      (rel. MASTER)  e.g. "EnemyParam.param"
+per-param row table           : ParamAddr = MASTER + dataOffset
+     rowCount = u16 at ParamAddr+0xA
+     row index (0x18 wide) : ParamAddr + 0x40 + 0x18*r
+          +0x00 (u32) row id
+          +0x08 (u32) row data offset (rel. ParamAddr)
+     EnemyParam row + 0x28 (u32) = baseHpNg     <- the HP lever
 ```
 
-So the EnemyParam *file* lives at `<chrparam_holder> + 0x310 + 4*0x10 = +0x350`.
-But the row-by-id read (`EnemyParam[id].maxHp`) sits behind several vtable
-dispatches on the resource wrapper, and the row struct layout isn't recoverable
-without RTTI.
-
-The three "sibling 2053-callers" candidates from pass 2 (`FUN_140832f50/e70/f10`)
-turned out to be **TLS plumbing**, not param accessors.
-
-### Realistic next step: Cheat Engine live introspection
-
-Static decompilation got us the architecture; CE gets us the precise instruction.
-Workflow:
-
-1. Launch the game with `_debug_player_count = 1`, ds2sc M2 hooks armed.
-2. CE: attach to `DarkSoulsII.exe`, scan for HP int (e.g. 50 for a Hollow Infantry
-   at Things Betwixt).
-3. Take damage, scan-decreased; iterate until 1 result.
-4. Right-click the address → "Find out what writes this address" (for max-HP
-   init we want **reads** instead — "Find out what accesses this address").
-5. Trigger a load (warp, save-quit-reload) so the init runs again. CE shows the
-   instruction; its containing function is the row-reader.
-6. That function's RVA is the M3 hook target. Replace pass-3's TBD with the real
-   address, then implement.
-
-After CE pins the address: the hook itself is small (~50 LOC) and we know exactly
-how to write it.
-
-Three candidate strategies:
-
-| Strategy | Where to hook | Pros | Cons |
-|---|---|---|---|
-| **A. EnemyParam row-reader** | The function that pulls the HP/dmg field from a param row | One hook covers all enemies; values flow naturally through the rest of the engine | Hardest to find — need to identify the field offset and the reader |
-| **B. ChrIns init / SetMaxHp** | ChrIns constructor or its HP-init method | Conceptually cleanest | ChrIns methods aren't symbol-named; need RTTI or pattern matching |
-| **C. Damage-apply** | The function that subtracts inbound damage from a ChrIns's HP | Inverse-scale damage on the way in (no HP edits) | Doesn't scale enemy outbound damage; needs a sibling hook for that |
-
-**Recommendation: A**, fall back to **B** if A's reader is too well-inlined.
-
-**Recon still needed before coding** (CE workflow above is the path):
-1. CE-derived RVA of the row-reader that returns `EnemyParam.maxHp` for an
-   enemy ID.
-2. Confirm the same reader serves both Enemy and Boss param rows (or whether
-   bosses go through a separate path — likely via the BossParam table loaded
-   into the same `<chrparam_holder> + 0x310 + 0x35*0x10 = +0x660` slot).
-3. The field offset of `maxHp` inside the returned row (CE shows this directly
-   in the instruction operand).
-
-Once those three numbers are known: hook = `~50 LOC`, multiply two integers
-and return.
-
-## What we do NOT do at M3
-
-| Skipped | Why |
-|---|---|
-| Posture scaling | DS2 has no posture system. |
-| Stat scaling at the regulation-bin level | Brittle — would need to re-pack `enc_regulation.bnd.dcx`, and changes leak into solo play / other saves. |
-| Per-player friendly-fire / damage knobs | M5+ work — needs the lobby's player table. |
-| Boss-room kick / proximity rules | M5+ work — lobby state. |
-
-## Implementation files (planned)
-
+For live cross-check only (not patched in this approach):
 ```
-dll/
-  hooks/
-    scaling.h, scaling.cpp     # the per-player multiplier hook
-  player_count.h, .cpp         # holds N; M3 reads _debug_player_count, M5 overrides
+ChrIns + 0x168 (u32) = current HP
+ChrIns + 0x170 (u32) = max HP    (player via GameManagerImp->+0xD0->+0x168/+0x170)
 ```
 
-New CMake link libs: none (still pure Win32).
+## Implementation (shipped)
 
-## Acceptance criteria
+- `dll/player_count.{h,cpp}` — atomic source of truth for N. M3 seeds from
+  `_debug_player_count`; M5 will override from the live lobby.
+- `dll/scaling.{h,cpp}` — param-patch engine:
+  - `resolve_master_param_table()` walks the pointer chain; returns 0 until
+    params are resident.
+  - `find_param("EnemyParam.")` iterates the index, validates name strings.
+  - `apply()` multiplies `baseHpNg` (0x28) in every EnemyParam row, snapshotting
+    each original on first touch (keyed by HP-field address) so re-apply never
+    compounds. Returns rows patched, or -1 if the table isn't resident yet.
+  - `restore()` writes originals back.
+  - All reads/writes go through page-validated helpers (`VirtualQuery` guard) so
+    a wrong offset degrades to "no scaling + log line", never a crash.
+- `dll/core.cpp` — after M2 hooks, seeds player_count, `scaling::init(...)`, and
+  spawns a worker that polls `apply()` every 500ms until the table resolves
+  (params load ~seconds after boot). `teardown()` calls `restore()`.
+- `dll/settings.{h,cpp}` + INI — added `_debug_player_count` (default 1).
+  Posture knobs dropped (DS2 has none); damage knobs parsed but unused this cut.
 
-- [ ] `_debug_player_count = 1` → enemy HP matches vanilla (sanity check).
-- [ ] `_debug_player_count = 4`, `enemy_health_scaling = 100` → regular enemy
-      visibly takes ~4× as many hits to kill (verify against a known mob, e.g.
-      first hollow in Things Betwixt).
-- [ ] `_debug_player_count = 4`, `boss_health_scaling = 100` → boss HP bar
-      empties ~4× slower (verify against The Pursuer / Last Giant).
-- [ ] `enemy_damage_scaling = 100`, 4 players → mob hits do ~4× damage.
-- [ ] No crash on map transition / boss fog entry / save-and-quit.
-- [ ] Log shows multiplier values applied at session start.
+### Verification result (2026-05-26)
+```
+scaling: EnemyParam x4.00 applied to 976/976 rows (N=4, 100%/player)
+```
+With `_debug_player_count=4`, `enemy_health_scaling=100`: Majula pigs visibly
+~4× tankier, persisting through save-load. No crash; clean teardown.
 
-## After M3
+## Cut 1b — boss-rate differentiation (next)
 
-M4 (save split `.sl2` → `.co2`) is the next milestone. The save chokepoint is
-already known: `0x140a8739e` (in `FUN_140a87110`, `SaveLoad2::SLContentFormat`
-ctor — see `chokepoints.txt`). M3 and M4 are independent.
+Bosses are `EnemyParam` rows (no param-level boss flag; `EnemyCommonParam` has
+no isBoss, "Enemy Type" is only Small/Medium/Large). Cut 1a applies the enemy
+rate uniformly, so bosses currently get the enemy rate, not `boss_health_scaling`.
+
+To apply the boss rate to boss rows, identify the boss chrId set by either:
+- (a) a curated list of the ~40 known SOTFS boss chrIds, or
+- (b) deriving it from `BossEnemyGenerateParam` / `BossParam` references.
+
+Then compute boss rows from their snapshot × the boss multiplier.
+
+## Out of scope (later)
+
+- Damage scaling (defaults to 0 in Luke's mods; enemy attack is via weapon/
+  AttackParam — separate field-mapping).
+- Live lobby player count (M5).
+- Param reload edge cases (NG+ regulation reload) — not observed; revisit if seen.
+
+## Attribution
+
+Offsets/mechanism referenced from: **boblord14** (Bob Edition CT),
+**Igromanru / Flightplan** (Param Patcher lineage), **Radai**, **Atvaark**.
+All C++ here is original; cross-validated against our own Ghidra DB.
+```
+https://github.com/boblord14/Dark-Souls-2-SotFS-CT-Bob-Edition
+```

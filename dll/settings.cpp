@@ -88,6 +88,7 @@ bool load_settings(const std::wstring& ini_path, Settings& out) {
             else if (key == "boss_health_scaling")   parse_int(val, out.boss_health_scaling);
             else if (key == "boss_damage_scaling")   parse_int(val, out.boss_damage_scaling);
             else if (key == "boss_posture_scaling")  parse_int(val, out.boss_posture_scaling);
+            else if (key == "_debug_player_count")   parse_int(val, out.debug_player_count);
         } else if (section == "password") {
             if (key == "cooppassword") out.cooppassword = val;
         } else if (section == "save") {

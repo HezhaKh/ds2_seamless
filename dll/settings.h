@@ -19,6 +19,11 @@ struct Settings {
     int boss_damage_scaling    = 0;
     int boss_posture_scaling   = 20;
 
+    // Debug only (M3): pretend this many players are in the session so scaling
+    // can be tested before M5 lobbies exist. 1 = vanilla (no scaling). M5 will
+    // replace this with the live co-op player count.
+    int debug_player_count     = 1;
+
     // [PASSWORD]
     std::string cooppassword;
 

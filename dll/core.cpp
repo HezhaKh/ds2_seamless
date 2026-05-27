@@ -3,9 +3,12 @@
 #include "settings.h"
 #include "version_gate.h"
 #include "hooks/getaddrinfo_hook.h"
+#include "player_count.h"
+#include "scaling.h"
 
 #include <windows.h>
 #include <psapi.h>
+#include <atomic>
 #include <string>
 
 namespace ds2sc::core {
@@ -39,6 +42,21 @@ namespace {
             narrow, mi.lpBaseOfDll, mi.SizeOfImage);
         log::info(line);
     }
+
+    // M3 scaling worker. The param tables aren't loaded at the title screen, so
+    // we poll scaling::apply() until it resolves the master param table (return
+    // >= 0). apply() handles N==1 (no-op) and the patch itself.
+    std::atomic<bool> g_stop_worker{false};
+
+    DWORD WINAPI scaling_worker(LPVOID) {
+        for (int attempt = 0; attempt < 1200 && !g_stop_worker.load(); ++attempt) {
+            if (scaling::apply() >= 0) return 0;  // param table resolved; done
+            Sleep(500);
+        }
+        if (!g_stop_worker.load())
+            log::warn("scaling: gave up waiting for param table (no save loaded?)");
+        return 0;
+    }
 }
 
 DWORD WINAPI bootstrap(LPVOID instance) {
@@ -69,11 +87,19 @@ DWORD WINAPI bootstrap(LPVOID instance) {
 
     hooks::dns::install();
 
-    log::info("ds2sc: bootstrap done (M2 — DNS hooks armed)");
+    // M3 — per-player enemy HP scaling.
+    player_count::set(s.debug_player_count);
+    scaling::init(s.enemy_health_scaling, s.boss_health_scaling);
+    HANDLE t = CreateThread(nullptr, 0, scaling_worker, nullptr, 0, nullptr);
+    if (t) CloseHandle(t);
+
+    log::info("ds2sc: bootstrap done (M2 DNS hooks armed; M3 scaling worker started)");
     return 0;
 }
 
 void teardown() {
+    g_stop_worker.store(true);
+    scaling::restore();
     log::info("ds2sc: teardown");
     log::shutdown();
 }
