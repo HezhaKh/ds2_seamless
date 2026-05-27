@@ -9,6 +9,7 @@
 #include <cmath>
 #include <mutex>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace ds2sc::scaling {
 
@@ -29,20 +30,18 @@ namespace {
 //        row index (0x18 wide) : ParamAddr+0x40 + 0x18*r
 //             +0x00 (u32) row id
 //             +0x08 (u32) row data offset (rel. ParamAddr)
-//        EnemyParam row + 0x28 (u32) = baseHpNg   <- the HP lever
+//        EnemyParam row + 0x28 (u32) = baseHpNg               <- the HP lever
+//        BossBattleParam row + 0xC (u32) = ChrParam ID        <- boss -> chr id
 // ---------------------------------------------------------------------------
 constexpr uintptr_t GAMEMANAGER_RVA = 0x16148f0;
 
 int  g_enemy_pct = 0;
-int  g_boss_pct  = 0;  // reserved for cut 1b (boss differentiation)
+int  g_boss_pct  = 0;
 
 std::mutex g_mtx;
-// key = absolute address of the patched HP field; value = original HP.
+// key = absolute address of a patched HP field; value = original HP.
 std::unordered_map<uintptr_t, uint32_t> g_backup;
 
-// Page-validated read. Returns false (without dereferencing) if `addr` is not
-// in committed, readable memory big enough to hold a T. Makes the whole pointer
-// walk crash-proof even if an offset is wrong.
 template <typename T>
 bool safe_read(uintptr_t addr, T& out) {
     if (addr == 0) return false;
@@ -62,8 +61,6 @@ bool safe_read(uintptr_t addr, T& out) {
     return true;
 }
 
-// Read a printable C-string; bail if it hits non-printable bytes (garbage) or
-// has no terminator within `cap`. Used to validate param-name entries.
 bool safe_read_str(uintptr_t addr, char* out, size_t cap) {
     for (size_t i = 0; i + 1 < cap; ++i) {
         char c;
@@ -112,10 +109,8 @@ uintptr_t resolve_master_param_table() {
     return p3;  // MASTER_PARAM_TABLE = ...+0
 }
 
-// Find a param table's data-block address by name. Iterates the param index,
-// validating each name string. Returns 0 if not found.
 uintptr_t find_param(uintptr_t master, const char* needle) {
-    constexpr int MAX_PARAMS = 400;   // DS2 has ~230; generous cap
+    constexpr int MAX_PARAMS = 400;
     for (int i = 0; i < MAX_PARAMS; ++i) {
         const uintptr_t entry = master + 0x40 + static_cast<uintptr_t>(0x18) * i;
         uint32_t data_off, name_off;
@@ -123,17 +118,51 @@ uintptr_t find_param(uintptr_t master, const char* needle) {
         if (!safe_read(entry + 0x14, name_off)) continue;
         char name[64];
         if (!safe_read_str(master + name_off, name, sizeof(name))) continue;
-        if (std::strstr(name, needle)) {
-            return master + data_off;
-        }
+        if (std::strstr(name, needle)) return master + data_off;
     }
     return 0;
 }
 
-double enemy_multiplier() {
+// Iterate a param's rows. Calls fn(rowId, rowAddr) for each. Returns row count.
+template <typename Fn>
+int iterate_param_rows(uintptr_t param_addr, Fn fn) {
+    uint16_t row_count = 0;
+    if (!safe_read(param_addr + 0xA, row_count)) return 0;
+    int seen = 0;
+    for (uint16_t r = 0; r < row_count; ++r) {
+        const uintptr_t rentry = param_addr + 0x40 + static_cast<uintptr_t>(0x18) * r;
+        uint32_t row_id, row_off;
+        if (!safe_read(rentry + 0x00, row_id)) continue;
+        if (!safe_read(rentry + 0x08, row_off)) continue;
+        fn(row_id, param_addr + row_off);
+        ++seen;
+    }
+    return seen;
+}
+
+// The boss chr-id set comes from BossBattleParam: each row's ChrParam ID (+0xC)
+// names the boss's character. Empty if the table isn't present (→ no boss
+// differentiation, all enemies get the enemy rate; no regression vs cut 1a).
+std::unordered_set<uint32_t> collect_boss_ids(uintptr_t master) {
+    std::unordered_set<uint32_t> ids;
+    const uintptr_t bbp = find_param(master, "BossBattleParam.");
+    if (!bbp) return ids;
+    iterate_param_rows(bbp, [&](uint32_t /*row_id*/, uintptr_t row_addr) {
+        uint32_t chr_id = 0;
+        if (safe_read(row_addr + 0xC, chr_id) && chr_id != 0) ids.insert(chr_id);
+    });
+    return ids;
+}
+
+double mul_from(int pct) {
     const int n = player_count::get();
-    if (n <= 1 || g_enemy_pct == 0) return 1.0;
-    return 1.0 + static_cast<double>(n - 1) * (static_cast<double>(g_enemy_pct) / 100.0);
+    if (n <= 1 || pct == 0) return 1.0;
+    return 1.0 + static_cast<double>(n - 1) * (static_cast<double>(pct) / 100.0);
+}
+
+uint32_t scale_u32(uint32_t orig, double mul) {
+    const long long s = std::llround(static_cast<double>(orig) * mul);
+    return s > 0xffffffffLL ? 0xffffffffu : s < 0 ? 0u : static_cast<uint32_t>(s);
 }
 
 }  // namespace
@@ -151,16 +180,14 @@ int apply() {
 
     const uintptr_t enemy_param = find_param(master, "EnemyParam.");
     if (!enemy_param) {
-        // Master resolved but the table name didn't match — offsets are likely
-        // wrong for this build. Return "done" (not "not ready") so the poll
-        // worker stops instead of spamming this warning.
         log::warn("scaling: EnemyParam table not found (offsets may be off for this build)");
         return 0;
     }
 
-    const double mul = enemy_multiplier();
-    if (mul == 1.0) {
-        // N==1 or 0% — nothing to scale. Make sure we aren't leaving a stale patch.
+    const double enemy_mul = mul_from(g_enemy_pct);
+    const double boss_mul  = mul_from(g_boss_pct);
+
+    if (enemy_mul == 1.0 && boss_mul == 1.0) {
         if (!g_backup.empty()) {
             for (auto& [addr, orig] : g_backup) safe_write_u32(addr, orig);
             g_backup.clear();
@@ -169,41 +196,49 @@ int apply() {
         return 0;
     }
 
-    uint16_t row_count = 0;
-    if (!safe_read(enemy_param + 0xA, row_count) || row_count == 0) {
-        log::warn("scaling: EnemyParam row count unreadable");
-        return 0;
-    }
+    const std::unordered_set<uint32_t> boss_ids = collect_boss_ids(master);
 
-    int patched = 0;
-    for (uint16_t r = 0; r < row_count; ++r) {
-        const uintptr_t rentry = enemy_param + 0x40 + static_cast<uintptr_t>(0x18) * r;
-        uint32_t row_off;
-        if (!safe_read(rentry + 0x08, row_off)) continue;
-        const uintptr_t hp_addr = enemy_param + row_off + 0x28;
+    int patched_enemy = 0, patched_boss = 0;
+    int hit_by_rowid = 0, hit_by_chrid = 0;  // diagnostic: which key joins bosses
 
+    iterate_param_rows(enemy_param, [&](uint32_t row_id, uintptr_t row_addr) {
+        uint32_t chr_id = 0;
+        safe_read(row_addr + 0x0, chr_id);  // EnemyParam.chrId
+
+        const bool by_rowid = boss_ids.count(row_id) != 0;
+        const bool by_chrid = boss_ids.count(chr_id) != 0;
+        if (by_rowid) ++hit_by_rowid;
+        if (by_chrid) ++hit_by_chrid;
+        // Bosses join by EnemyParam row id (verified live: chrId-field hits = 0).
+        // by_chrid is computed for the diagnostic log only, not the decision.
+        const bool is_boss = by_rowid;
+
+        const double mul = is_boss ? boss_mul : enemy_mul;
+        if (mul == 1.0) return;  // this category isn't being scaled
+
+        const uintptr_t hp_addr = row_addr + 0x28;
         uint32_t cur;
-        if (!safe_read(hp_addr, cur)) continue;
+        if (!safe_read(hp_addr, cur)) return;
 
         uint32_t orig;
         auto it = g_backup.find(hp_addr);
         if (it == g_backup.end()) { orig = cur; g_backup.emplace(hp_addr, cur); }
         else                       { orig = it->second; }
+        if (orig == 0) return;
 
-        if (orig == 0) continue;  // skip rows with no HP (props / non-combat)
-        const long long scaled_ll = std::llround(static_cast<double>(orig) * mul);
-        const uint32_t scaled = scaled_ll > 0xffffffffLL ? 0xffffffffu
-                              : scaled_ll < 0            ? 0u
-                                                         : static_cast<uint32_t>(scaled_ll);
-        if (safe_write_u32(hp_addr, scaled)) ++patched;
-    }
+        if (safe_write_u32(hp_addr, scale_u32(orig, mul))) {
+            if (is_boss) ++patched_boss; else ++patched_enemy;
+        }
+    });
 
-    char line[160];
+    char line[224];
     std::snprintf(line, sizeof(line),
-        "scaling: EnemyParam x%.2f applied to %d/%u rows (N=%d, %d%%/player)",
-        mul, patched, row_count, player_count::get(), g_enemy_pct);
+        "scaling: enemy x%.2f (%d rows), boss x%.2f (%d rows); "
+        "bossIds=%zu [rowidHits=%d chridHits=%d] N=%d",
+        enemy_mul, patched_enemy, boss_mul, patched_boss,
+        boss_ids.size(), hit_by_rowid, hit_by_chrid, player_count::get());
     log::info(line);
-    return patched;
+    return patched_enemy + patched_boss;
 }
 
 void restore() {

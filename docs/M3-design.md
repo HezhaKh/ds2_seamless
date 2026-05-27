@@ -1,7 +1,7 @@
 # M3 — Per-player enemy/boss HP scaling
 
-> Status: **cut 1a (enemy HP) implemented + verified on hardware.**
-> Cut 1b (boss-rate differentiation) pending.
+> Status: **cut 1a (enemy HP) + cut 1b (boss-rate) implemented + verified on hardware.**
+> Damage scaling and live player count (M5) remain.
 
 ## Goal
 
@@ -73,17 +73,30 @@ scaling: EnemyParam x4.00 applied to 976/976 rows (N=4, 100%/player)
 With `_debug_player_count=4`, `enemy_health_scaling=100`: Majula pigs visibly
 ~4× tankier, persisting through save-load. No crash; clean teardown.
 
-## Cut 1b — boss-rate differentiation (next)
+## Cut 1b — boss-rate differentiation (implemented + verified)
 
 Bosses are `EnemyParam` rows (no param-level boss flag; `EnemyCommonParam` has
-no isBoss, "Enemy Type" is only Small/Medium/Large). Cut 1a applies the enemy
-rate uniformly, so bosses currently get the enemy rate, not `boss_health_scaling`.
+no isBoss, "Enemy Type" is only Small/Medium/Large). The boss set is derived
+**from the data**, not hardcoded: each `BossBattleParam` row carries a
+`ChrParam ID` at row+0xC that names the boss's character. `collect_boss_ids()`
+enumerates BossBattleParam and gathers those IDs; an EnemyParam row is a boss
+iff its **row id** is in that set. Boss rows get `boss_health_scaling`, the rest
+get `enemy_health_scaling`.
 
-To apply the boss rate to boss rows, identify the boss chrId set by either:
-- (a) a curated list of the ~40 known SOTFS boss chrIds, or
-- (b) deriving it from `BossEnemyGenerateParam` / `BossParam` references.
+### Verification result (2026-05-26)
+With `enemy_health_scaling=0`, `boss_health_scaling=100`, `_debug_player_count=4`:
+```
+scaling: enemy x1.00 (0 rows), boss x4.00 (33 rows); bossIds=39 [rowidHits=33 chridHits=0] N=4
+```
+- `bossIds=39` from BossBattleParam (DS2 SOTFS has ~40 bosses).
+- Join key is the EnemyParam **row id** (33 matched by row-id, 0 by chrId-field),
+  so the decision uses row-id only; the chrId count is kept for diagnostics.
+- 33 boss rows scaled, 0 mob rows touched — exactly the intended split.
 
-Then compute boss rows from their snapshot × the boss multiplier.
+The 6 unmatched (39→33) are multi-phase / duo battle entries (e.g. Throne
+Watcher+Defender) whose `ChrParam ID` has no own EnemyParam row; they fall back
+to the enemy rate. Acceptable; revisit only if a specific boss is noticeably
+under-scaled.
 
 ## Out of scope (later)
 
