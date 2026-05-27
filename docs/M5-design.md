@@ -60,14 +60,23 @@ won't match the new hostname.)
 **Result:** friends running our launcher, pointed at the same coordinator, get
 native DS2 co-op — summon each other, co-op through areas via summon signs.
 
-**First verifiable sub-goal (M5a.0):**
-Stand up a local ds3os DS2 server (`GameType=DarkSouls2`, listening on
-localhost). Patch the hostname string to the loopback host + the RSA key to the
-local server's key. Launch the game; **ds3os logs the client connecting and the
-game reaches the online state** (online menus work, no login error). That proves
-the redirect + the native protocol handshake end-to-end. Fastest route: first
-prove it using **ds3os's own Loader** (confirms the coordinator works at all),
-then fold the redirect into our DLL for a single unified launcher.
+**First verifiable sub-goal (M5a.0): DONE (2026-05-27).**
+Stood up a local ds3os DS2 server (`GameType=DarkSouls2`, advertise + password
+`ds2sctest`, `PrivateHostname=127.0.0.1`). Using ds3os's own Loader (which
+recognised our exe as "Dark Souls II - 1.0.3.0 (Steam)" and connects via the
+injector's plaintext hostname/key swap), the game connected to our server:
+the in-game **welcome banner from our `config.json` Announcements appeared**, and
+the server wrote `database.sqlite` on connect. Redirect + native handshake proven
+end-to-end.
+
+Notes for repeating: the Loader's **Minimum Players** filter defaults to 1 and
+hides empty servers — set it to 0 to see our (0-player) server. The DS2 server
+appears under the **Dark Souls II** tab only. Same-machine connect works because
+the Loader auto-detects same public IP and uses `PrivateHostname`.
+
+Next: fold the redirect into our own DLL (M5a.1) so a single `ds2sc_launcher`
+does everything (redirect + scaling + save split), then a real two-player summon
+test.
 
 ### M5b — Seamless presence (hard; Luke-level)
 
