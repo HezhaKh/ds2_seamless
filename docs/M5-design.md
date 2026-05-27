@@ -74,9 +74,32 @@ hides empty servers — set it to 0 to see our (0-player) server. The DS2 server
 appears under the **Dark Souls II** tab only. Same-machine connect works because
 the Loader auto-detects same public IP and uses `PrivateHostname`.
 
-Next: fold the redirect into our own DLL (M5a.1) so a single `ds2sc_launcher`
-does everything (redirect + scaling + save split), then a real two-player summon
-test.
+### M5a.1 — redirect folded into our DLL: DONE (2026-05-27).
+
+`dll/hooks/server_redirect_hook.{h,cpp}` now does the whole redirect, driven by
+`[NETWORK]` settings (`coordinator_host`, `coordinator_pubkey_file`,
+`coordinator_port`). Three pieces, all verified live:
+1. **Hostname** — the login host is stored as **UTF-16** in `.rdata` (not ASCII;
+   the ASCII search found 0). AOB-find the wide string + overwrite with the
+   coordinator host (zero-filled to the original length).
+2. **RSA public key** — plaintext ASCII PEM; AOB-find `-----BEGIN RSA PUBLIC
+   KEY-----`…`END` block and overwrite with the coordinator's key. The key file
+   must be **LF-normalized** (ds3os writes CRLF → 434 B; normalized → 426 B,
+   matching the in-exe 2048-bit slot).
+3. **Port** — the client connects to FromSoft login on hardcoded **50031**; we
+   hook `ws2_32!connect` and rewrite `sin_port` 50031 → `coordinator_port`
+   (50050). `connect` is imported **by ordinal (4)**, so `patch_iat` (name-based)
+   misses it — added `patch_iat_ordinal` to `iat.{h,cpp}`.
+
+Verified: launched via `ds2sc_launcher` (our DLL only, no ds3os Loader), log
+showed `server_redirect: -> 127.0.0.1:50050 (hostname x1, RSA key x1,
+connect-hook ok)` then `connect port 50031 -> 50050`; the game connected to our
+ds3os server (completed TCP session on 50050) and showed the **welcome banner**.
+`ds2sc.dll` confirmed loaded in the running `DarkSoulsII.exe`.
+
+Next: a real two-player summon test (needs a second player + the coordinator
+reachable — LAN IP or port-forward), then wire the live session player count
+into M3 scaling.
 
 ### M5b — Seamless presence (hard; Luke-level)
 

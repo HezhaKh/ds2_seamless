@@ -16,4 +16,13 @@ bool patch_iat(HMODULE host,
                void* new_func,
                void** out_old);
 
+// Like patch_iat but matches an import by ordinal. Needed for DLLs (e.g. ws2_32)
+// that export the classic Berkeley socket functions by ordinal only — connect=4,
+// so patch_iat (name-based) can't find them.
+bool patch_iat_ordinal(HMODULE host,
+                       const char* dll_name,
+                       WORD ordinal,
+                       void* new_func,
+                       void** out_old);
+
 }

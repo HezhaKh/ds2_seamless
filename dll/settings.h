@@ -30,6 +30,13 @@ struct Settings {
     // [SAVE]
     std::string save_file_extension = "co2";
 
+    // [NETWORK] — M5a coordinator (ds3os). Empty host = no redirect (the game
+    // stays offline behind the M2 DNS block). When set, the login hostname +
+    // RSA public key are rewritten to point at this coordinator.
+    std::string coordinator_host;                              // e.g. 127.0.0.1 or a friend's IP/host
+    std::string coordinator_pubkey_file = "coordinator_pubkey.pem";  // PEM next to the DLL
+    int         coordinator_port = 50050;                      // ds3os LoginServerPort (game's 50031 is rewritten to this)
+
     // [LANGUAGE]
     std::string mod_language_override;
 };

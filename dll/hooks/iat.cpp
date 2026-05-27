@@ -84,4 +84,58 @@ bool patch_iat(HMODULE host,
     return false;
 }
 
+bool patch_iat_ordinal(HMODULE host,
+                       const char* dll_name,
+                       WORD ordinal,
+                       void* new_func,
+                       void** out_old)
+{
+    auto base = reinterpret_cast<uint8_t*>(host);
+    auto* dos = reinterpret_cast<IMAGE_DOS_HEADER*>(base);
+    if (dos->e_magic != IMAGE_DOS_SIGNATURE) return false;
+    auto* nt = reinterpret_cast<IMAGE_NT_HEADERS*>(base + dos->e_lfanew);
+    if (nt->Signature != IMAGE_NT_SIGNATURE) return false;
+
+    const IMAGE_DATA_DIRECTORY& imp_dir =
+        nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+    if (imp_dir.VirtualAddress == 0 || imp_dir.Size == 0) return false;
+
+    auto* desc = reinterpret_cast<IMAGE_IMPORT_DESCRIPTOR*>(base + imp_dir.VirtualAddress);
+    for (; desc->Name != 0; ++desc) {
+        const char* this_dll = reinterpret_cast<const char*>(base + desc->Name);
+        if (!iequals(this_dll, dll_name)) continue;
+
+        auto* lookup = reinterpret_cast<IMAGE_THUNK_DATA*>(
+            base + (desc->OriginalFirstThunk ? desc->OriginalFirstThunk : desc->FirstThunk));
+        auto* iat    = reinterpret_cast<IMAGE_THUNK_DATA*>(base + desc->FirstThunk);
+
+        for (; lookup->u1.AddressOfData != 0; ++lookup, ++iat) {
+            if (!IMAGE_SNAP_BY_ORDINAL(lookup->u1.Ordinal)) continue;
+            if (IMAGE_ORDINAL(lookup->u1.Ordinal) != ordinal) continue;
+
+            void** slot = reinterpret_cast<void**>(&iat->u1.Function);
+            DWORD old_prot = 0;
+            if (!VirtualProtect(slot, sizeof(void*), PAGE_READWRITE, &old_prot)) {
+                log::error("iat: VirtualProtect to RW failed (ordinal)");
+                return false;
+            }
+            *out_old = *slot;
+            *slot = new_func;
+            VirtualProtect(slot, sizeof(void*), old_prot, &old_prot);
+
+            char line[256];
+            std::snprintf(line, sizeof(line),
+                "iat: patched %s!#%u  slot=%p  old=%p  new=%p",
+                dll_name, ordinal, (void*)slot, *out_old, new_func);
+            log::info(line);
+            return true;
+        }
+    }
+
+    char line[256];
+    std::snprintf(line, sizeof(line), "iat: import %s!#%u not found", dll_name, ordinal);
+    log::warn(line);
+    return false;
+}
+
 }

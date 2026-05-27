@@ -4,12 +4,15 @@
 #include "version_gate.h"
 #include "hooks/getaddrinfo_hook.h"
 #include "hooks/savefile_hook.h"
+#include "hooks/server_redirect_hook.h"
 #include "player_count.h"
 #include "scaling.h"
 
 #include <windows.h>
 #include <psapi.h>
 #include <atomic>
+#include <fstream>
+#include <sstream>
 #include <string>
 
 namespace ds2sc::core {
@@ -92,6 +95,26 @@ DWORD WINAPI bootstrap(LPVOID instance) {
     // saves are never touched.
     hooks::savefile::configure(s.save_file_extension);
     hooks::savefile::install();
+
+    // M5a — redirect the game to our co-op coordinator (ds3os). Reads the
+    // coordinator's RSA public key from the PEM file next to this DLL. If no
+    // coordinator_host is set, this is a no-op and the M2 DNS block keeps the
+    // game offline.
+    {
+        std::string pubkey;
+        if (!s.coordinator_host.empty()) {
+            std::wstring keyfile(s.coordinator_pubkey_file.begin(), s.coordinator_pubkey_file.end());
+            std::ifstream kf(dir + L"\\" + keyfile, std::ios::binary);
+            if (kf) {
+                std::stringstream ss; ss << kf.rdbuf();
+                pubkey = ss.str();
+            } else {
+                log::warn("server_redirect: coordinator_pubkey_file not found next to DLL");
+            }
+        }
+        hooks::server_redirect::configure(s.coordinator_host, pubkey, s.coordinator_port);
+        hooks::server_redirect::install();
+    }
 
     // M3 — per-player enemy HP scaling.
     player_count::set(s.debug_player_count);

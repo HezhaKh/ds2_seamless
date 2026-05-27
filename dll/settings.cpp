@@ -93,6 +93,10 @@ bool load_settings(const std::wstring& ini_path, Settings& out) {
             if (key == "cooppassword") out.cooppassword = val;
         } else if (section == "save") {
             if (key == "save_file_extension") out.save_file_extension = val;
+        } else if (section == "network") {
+            if      (key == "coordinator_host")         out.coordinator_host = val;
+            else if (key == "coordinator_pubkey_file")  out.coordinator_pubkey_file = val;
+            else if (key == "coordinator_port")         parse_int(val, out.coordinator_port);
         } else if (section == "language") {
             if (key == "mod_language_override") out.mod_language_override = val;
         }
