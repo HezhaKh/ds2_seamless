@@ -69,9 +69,12 @@ building and "compare and optimise" if/when his ships.
 ## Phasing (each phase needs 2 players to verify)
 
 ### M5b.−1 — Inline-hook infra (prerequisite, solo-doable)
-Add a trampoline-hook helper (MinHook-style or hand-rolled) + an AOB pattern
-scanner, so we can hook internal functions. No game behaviour yet; unit-test by
-hooking a known function and confirming the trampoline returns correctly.
+**Decided (2026-05-27): use MinHook** (small MIT x64 inline-hook lib) — handles
+instruction-length decoding / trampolines correctly; accepted breaking the
+"no third-party deps" streak for this. Vendor it under `third_party/minhook`,
+add to CMake. Also add an AOB pattern scanner (port the scheissgeist/ds3os
+patterns from `addresses.h`). No game behaviour yet; unit-test by hooking a known
+function and confirming the trampoline returns correctly.
 
 ### M5b.0 — Keep phantoms past boss kill (foundational)
 Inline-hook `ParseFromArray`; block the incoming disconnect-push messages above
