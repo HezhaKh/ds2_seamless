@@ -4,6 +4,32 @@ Create a GitHub issue with a concrete outcome and acceptance criteria, then add
 the `agent-ready` label. The AgentCraft service on the Proxmox host polls every
 two minutes and sends the issue to the Foreman on `gs1`.
 
+## Documentation issue quickstart
+
+Copy this example into a GitHub issue:
+
+```text
+Title: Document the Windows build workflow in CONTRIBUTING.md
+
+Body:
+Add a short Windows build verification section to CONTRIBUTING.md so contributors
+can find the compiler/package gate before requesting review.
+
+Scope: Change only CONTRIBUTING.md; add no more than 20 lines. Do not change code,
+workflows, build files, assets, secrets or orchestration policy.
+
+Acceptance criteria:
+- Name the Windows build workflow and link to .github/workflows/build.yml.
+- Explain that a passing build does not establish multiplayer gameplay correctness.
+- Verify the relative workflow link resolves to an existing file.
+- Run git diff --check and report the changed-file list and added-line count.
+```
+
+Applying `agent-ready` admits the issue to the queue. The queue waits for the
+previous pull request to be merged or closed before admitting the next issue.
+Code pull requests require human review; documentation pull requests follow the
+automatic-merge checks described below.
+
 Each goal uses `agentcraft/goals/gN` as its integration branch. Workers keep their
 individual worktrees, run local checks, and send completed tasks to lead review.
 The Foreman accepts an explicit lead verdict only after checking the committed
