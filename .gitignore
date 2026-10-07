@@ -15,3 +15,35 @@ CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 Testing/
+
+# Out-of-tree build/staging output (keep dist defaults tracked).
+/build-*/
+/stage/
+/packages/
+*.exe
+*.dll
+*.lib
+*.a
+*.o
+*.pch
+*.ipch
+*.res
+*.idb
+*.iobj
+*.ipdb
+*.zip
+*.7z
+*.rar
+*.tar
+*.tar.gz
+*.msi
+*.msix
+*.nupkg
+
+# Local coordinator credentials and save data. Custom key names also need review.
+*.pem
+*.key
+*.pfx
+*.p12
+*.sl2
+*.co2
