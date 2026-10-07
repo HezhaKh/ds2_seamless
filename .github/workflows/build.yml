@@ -1,0 +1,33 @@
+name: Windows build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure and build Windows x64 Release
+        shell: pwsh
+        run: ./scripts/build.ps1 -Config Release
+      - name: Verify package contents
+        shell: pwsh
+        run: |
+          $expected = @('ds2sc_launcher.exe', 'SeamlessCoop/ds2sc.dll', 'SeamlessCoop/ds2sc_settings.ini')
+          foreach ($file in $expected) {
+            if (-not (Test-Path -LiteralPath "build/package/Release/$file" -PathType Leaf)) {
+              throw "Missing package file: $file"
+            }
+          }
+      - name: Upload compiled package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ds2sc-windows-x64-Release
+          path: build/package/Release/
+          if-no-files-found: error
